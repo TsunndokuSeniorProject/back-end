@@ -10,11 +10,11 @@ temp_db_mutant = [{
 def get_test():
     return jsonify({'test': "this is an example"})
 
-@app.route("/api/1.0/mutant", methods=['GET'])
+@app.route("/api/1.0/test/mutant", methods=['GET'])
 def get_mutant():
     return jsonify(temp_db_mutant)
 
-@app.route("/api/1.0/mutant", methods=['POST'])
+@app.route("/api/1.0/test/mutant", methods=['POST'])
 def post_mutant():
     req = request.json
     if not req or not 'id' in req or not 'name' in req:
