@@ -6,6 +6,18 @@ import re
 import pandas as pd
 import json
 from proxy_pool import Pool
+import signal
+import sys
+
+def signal_handler(sig, frame):
+        print "Process is stopped"
+        if not book_info is None:   
+            book_info['Comment'] = reviews
+            with open('novel/comments/review_'+str(asin)+'.json', 'w') as fp:
+                json.dump(book_info, fp)
+                fp.close()
+        sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
 
 exclude = []
 with open('novel/log_asin.json', 'r') as fp:
@@ -40,7 +52,6 @@ for asin in asin_list:
                     print "    wait for another attempt"
                     print datetime.now()
                     time.sleep(900)
-                    url = "https://www.amazon.com/s/ref=sr_pg_2?fst=p90x%3A1&rh=n%3A283155%2Ck%3Anovel&page="+str(page_num)+"&keywords=novel"
                     data = requests.get(url)
                     print "    Page number : "+str(page_num)+" #_Attempt : "+str(attempt)
                     print "    Request status : "+str(data.status_code)
@@ -88,6 +99,7 @@ for asin in asin_list:
                 passed_req.append(asin)
             except:
                 failed_req.append(asin)
+                print ">>>>>>>>>>>>>>>>>>>> Unexpected error:", sys.exc_info()[0]
                 break
             print datetime.now()
             time.sleep(180)
