@@ -1,26 +1,20 @@
 from keras import models
 from keras import layers
 from keras import optimizers
-import pandas as pd
 import keras
 import json
 # This Keras model class is not complete, but can be compile with no error
 
+max_chr = 10000
 
 review = ""
 with open('../web_scraper/novel/comments/review_006246616X.json', 'r') as fp:
     data = json.load(fp)
     for comment in data['Comment']:
-        print comment['Review']
+        print(comment['Review'])
         review = review+comment['Review']
 
-
-
-# Drop label column from data frame and create dictionary using fit_on_texts
-mock_data.drop(["label"], axis=1, inplace=True)
-
-
-#tokenize...
+#Tokenize review
 tokenizer = keras.preprocessing.text.Tokenizer(num_words=10000)
 tokenizer.fit_on_texts(texts=review)
 dictionary = tokenizer.word_index
