@@ -1,5 +1,6 @@
 import json
 import pprint
+import os
 pos_dict = ""
 neg_dict = ""
 
@@ -9,11 +10,12 @@ with open("positive_adj.json", 'r') as pos:
 with open("negative_adj.json", 'r') as neg:
     neg_dict = json.load(neg)
 
-
+directory = "../../web_scraper/novel/comments/"
 review = ""
 data = ""
-with open('../../web_scraper/novel/comments/review_006246616X.json', 'r') as fp:
-    data = json.load(fp)
+for file in os.listdir(directory):
+    with open(directory + file, 'r') as fp:
+        data = json.load(fp)
     for comment in data['Comment']:
         neg_score = 0
         pos_score = 0
@@ -40,7 +42,8 @@ with open('../../web_scraper/novel/comments/review_006246616X.json', 'r') as fp:
                 comment["positivity"] = 1
             else:
                 comment["positivity"] = 0
+    pprint.pprint(data)
+    with open(directory + file, 'w') as fp:
+        json.dump(data, fp)
 
-pprint.pprint(data)
-with open('../../web_scraper/novel/comments/review_006246616X.json', 'w') as fp:
-    json.dump(data, fp)
+

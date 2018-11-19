@@ -2,22 +2,26 @@ from keras import models
 from keras import layers
 from keras import optimizers
 import keras
+import os
 import json
 # This Keras model class is not complete, but can be compile with no error
 
 max_chr = 10000
+directory = "../web_scraper/novel/comments/"
 polar_label = []
 review = []
 i = 1
-with open('../web_scraper/novel/comments/review_006246616X.json', 'r') as fp:
-    data = json.load(fp)
-    for comment in data['Comment']:
-        review.append(comment['Review'])
-        polar_label.append(comment['positivity'])
-        i = i + 1
+for file in os.listdir(directory):
+    print(directory+file)
+    with open(directory + file, 'r') as fp:
+        data = json.load(fp)
+        for comment in data['Comment']:
+            review.append(comment['Review'])
+            polar_label.append(comment['positivity'])
+            i = i + 1
 print(polar_label)
 
-#Tokenize review
+# Tokenize review
 tokenizer = keras.preprocessing.text.Tokenizer(num_words=10000)
 tokenizer.fit_on_texts(texts=review)
 dictionary = tokenizer.word_index
