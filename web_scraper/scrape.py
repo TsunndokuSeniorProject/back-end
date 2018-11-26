@@ -5,24 +5,28 @@ from datetime import datetime
 import re
 import pandas as pd
 import json
-from proxy_pool import Pool
 import signal
 import sys
 
+
 def signal_handler(sig, frame):
-        print "Process is stopped"
-        if not book_info is None:   
+        print("Process is stopped")
+        if not book_info is None:
             book_info['Comment'] = reviews
             with open('novel/comments/review_'+str(asin)+'.json', 'w') as fp:
                 json.dump(book_info, fp)
                 fp.close()
         sys.exit(0)
+
+
 signal.signal(signal.SIGINT, signal_handler)
 
 exclude = []
 with open('novel/log_asin.json', 'r') as fp:
     data = json.load(fp)
-    exclude = data['Passed']
+    exclude = data['Passed'] + data['Failed']
+    print(exclude)
+
 
 failed_req = []
 passed_req = []
@@ -33,7 +37,7 @@ asin_list = asin_table['asin'].tolist()
 # Iterate over ASIN list
 for asin in asin_list:
     if asin not in exclude:
-        print "Asin : "+asin
+        print("Asin : "+asin)
 
         reviews = []
 
@@ -42,19 +46,19 @@ for asin in asin_list:
         # Send request for comment review pages of each book
         for page_num in range(1, 100):
             isSkip = False
-            url = "https://www.amazon.com/product-reviews/"+asin+"/ref=cm_cr_arp_d_paging_btm_"+str(page_num)+"?ie=UTF8&reviewerType=all_reviews&pageNumber="+str(page_num) 
+            url = "https://www.amazon.com/product-reviews/"+asin+"/ref=cm_cr_arp_d_paging_btm_"+str(page_num)+"?ie=UTF8&reviewerType=all_reviews&pageNumber="+str(page_num)
             data = requests.get(url)
-            print "    Page number : "+str(page_num)
-            print "    Request status : "+str(data.status_code)
+            print("    Page number : "+str(page_num))
+            print("    Request status : "+str(data.status_code))
             if str(data.status_code) != "200":
                 attempt = 1
                 while str(data.status_code) != "200":
-                    print "    wait for another attempt"
-                    print datetime.now()
+                    print("    wait for another attempt")
+                    print(datetime.now())
                     time.sleep(900)
                     data = requests.get(url)
-                    print "    Page number : "+str(page_num)+" #_Attempt : "+str(attempt)
-                    print "    Request status : "+str(data.status_code)
+                    print("    Page number : "+str(page_num)+" #_Attempt : "+str(attempt))
+                    print("    Request status : "+str(data.status_code))
                     if attempt > 5:
                         isSkip = True
                         break
@@ -65,7 +69,7 @@ for asin in asin_list:
                 failed_req.append(asin)
                 break
             if "no reviews" in data.text:
-                print "No more review at "+str(page_num)
+                print("No more review at "+str(page_num))
                 break
             soup = BeautifulSoup(data.text,'html.parser')
             # print(soup.prettify())
@@ -99,25 +103,25 @@ for asin in asin_list:
                 passed_req.append(asin)
             except:
                 failed_req.append(asin)
-                print ">>>>>>>>>>>>>>>>>>>> Unexpected error:", sys.exc_info()[0]
+                print(">>>>>>>>>>>>>>>>>>>> Unexpected error:", sys.exc_info()[0])
                 break
-            print datetime.now()
+            print(datetime.now())
             time.sleep(180)
         log = {"Failed": [], "Passed": []}
         with open('novel/log_asin.json', 'r') as fp:
             log = json.load(fp)
-            fp.close()   
+            fp.close()
         with open('novel/log_asin.json', 'w') as fp:
             json.dump({
                 "Failed":log["Failed"]+failed_req,
                 "Passed":log["Passed"]+passed_req
             }, fp)
             fp.close()
-        if not book_info is None:   
+        if not book_info is None:
             book_info['Comment'] = reviews
             with open('novel/comments/review_'+str(asin)+'.json', 'w') as fp:
                 json.dump(book_info, fp)
                 # fp.write(",\n")
                 fp.close()
-            time.sleep(900)
-            print datetime.now()
+            time.sleep(180)
+            print(datetime.now())
