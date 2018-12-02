@@ -1,26 +1,27 @@
 from keras import models
 from keras import layers
 from keras import optimizers
-import pandas as pd
 import keras
+import os
 import json
 # This Keras model class is not complete, but can be compile with no error
 
+max_chr = 10000
+directory = "../web_scraper/novel/comments/"
+polar_label = []
+review = []
+i = 1
+for file in os.listdir(directory):
+    print(directory+file)
+    with open(directory + file, 'r') as fp:
+        data = json.load(fp)
+        for comment in data['Comment']:
+            review.append(comment['Review'])
+            polar_label.append(comment['positivity'])
+            i = i + 1
+print(polar_label)
 
-review = ""
-with open('../web_scraper/novel/comments/review_006246616X.json', 'r') as fp:
-    data = json.load(fp)
-    for comment in data['Comment']:
-        print comment['Review']
-        review = review+comment['Review']
-
-
-
-# Drop label column from data frame and create dictionary using fit_on_texts
-mock_data.drop(["label"], axis=1, inplace=True)
-
-
-#tokenize...
+# Tokenize review
 tokenizer = keras.preprocessing.text.Tokenizer(num_words=10000)
 tokenizer.fit_on_texts(texts=review)
 dictionary = tokenizer.word_index
@@ -29,8 +30,6 @@ dictionary = tokenizer.word_index
 sequences = tokenizer.texts_to_sequences(review)
 sequences = keras.preprocessing.sequence.pad_sequences(sequences)
 
-# 1 represent positive, 0 represent negative
-label = [1, 0]
 
 # Initialize the model and add LSTM layer and output as Dense Layer
 model = models.Sequential()
@@ -42,6 +41,6 @@ model.add(layers.Dense(units=2, activation="sigmoid"))
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer=optimizers.adam(lr=0.01),
               metrics=['accuracy'])
-# Fit model with mock data for five epoch
-model.fit(x=sequences, y=label, batch_size=5, epochs=5)
-print(model.evaluate(x=sequences, y=label))
+
+model.fit(x=sequences, y=polar_label, epochs=5)
+print(model.evaluate(x=sequences, y=polar_label))
