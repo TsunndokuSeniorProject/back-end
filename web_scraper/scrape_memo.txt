@@ -14,3 +14,6 @@ with open('novel/review.json', 'r') as fp:
     data = json.load(fp)
     for d in data:
         print type(d)
+
+
+        test
