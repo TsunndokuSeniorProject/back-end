@@ -25,7 +25,6 @@ exclude = []
 with open('novel/log_asin.json', 'r') as fp:
     data = json.load(fp)
     exclude = data['Passed'] + data['Failed']
-    print(exclude)
 
 
 failed_req = []
@@ -55,7 +54,7 @@ for asin in asin_list:
                 while str(data.status_code) != "200":
                     print("    wait for another attempt")
                     print(datetime.now())
-                    time.sleep(900)
+                    time.sleep(300)
                     data = requests.get(url)
                     print("    Page number : "+str(page_num)+" #_Attempt : "+str(attempt))
                     print("    Request status : "+str(data.status_code))
@@ -106,7 +105,7 @@ for asin in asin_list:
                 print(">>>>>>>>>>>>>>>>>>>> Unexpected error:", sys.exc_info()[0])
                 break
             print(datetime.now())
-            time.sleep(180)
+            time.sleep(300)
         log = {"Failed": [], "Passed": []}
         with open('novel/log_asin.json', 'r') as fp:
             log = json.load(fp)
@@ -123,5 +122,5 @@ for asin in asin_list:
                 json.dump(book_info, fp)
                 # fp.write(",\n")
                 fp.close()
-            time.sleep(180)
+            time.sleep(300)
             print(datetime.now())
