@@ -43,4 +43,6 @@ model.compile(loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 model.fit(x=sequences, y=polar_label, epochs=5)
+model.save_weights("polarity_weight.h5")
+model.load_weights("polarity_weight.h5")
 print(model.evaluate(x=sequences, y=polar_label))
