@@ -50,12 +50,12 @@ def get_book_reviews(book_id, genre):
 
 ### don't forget to change genre!!!
 
-novel_id = get_id_by_genre('https://www.goodreads.com/genres/romance')
+novel_id = get_id_by_genre('https://www.goodreads.com/genres/crime')
 
 for book_id in novel_id:
 
-    data = get_book_reviews(book_id, "Romance")
+    data = get_book_reviews(book_id, "Crime")
 
-    with open('novel/romance/review_'+str(book_id)+'.json', 'w+') as fp:
+    with open('novel/crime/review_'+str(book_id)+'.json', 'w+') as fp:
         json.dump(data, fp)
         fp.close()
