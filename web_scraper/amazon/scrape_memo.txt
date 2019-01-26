@@ -1,0 +1,19 @@
+# To get review of any product on amazon it can be done by querying by ASIN e.g. B078XBQ4N5
+# To iterate over every product comment review pages, sending request by change cm_cr_arp_d_paging_btm_{$page_number} and pageNumber={$page_number}
+https://www.amazon.com/product-reviews/B078XBQ4N5/ref=cm_cr_dp_d_show_all_btm?ie=UTF8&reviewerType=all_reviews
+https://www.amazon.com/product-reviews/B078XBQ4N5/ref=cm_cr_arp_d_paging_btm_2?ie=UTF8&reviewerType=all_reviews&pageNumber=2
+
+# Get ASIN
+https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Dstripbooks&field-keywords=novel
+# Use link below
+https://www.amazon.com/s/ref=sr_pg_2?fst=p90x%3A1&rh=n%3A283155%2Ck%3Anovel&page=2&keywords=novel
+
+
+
+with open('novel/review.json', 'r') as fp:
+    data = json.load(fp)
+    for d in data:
+        print type(d)
+
+
+        test
