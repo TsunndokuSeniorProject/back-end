@@ -29,7 +29,7 @@ class Model:
 
     def predict(self, Height, Weight):
         result = self.model.predict([[Height, Weight]])
-        print result
+        print(result)
         return result
 
 if __name__=="__main__":
