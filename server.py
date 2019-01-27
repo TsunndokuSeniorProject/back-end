@@ -62,5 +62,5 @@ def post_gender_predict():
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
 
-    app.run(port="5001")
+    app.run()
 
