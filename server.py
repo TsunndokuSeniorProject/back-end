@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from model.model import Model
 from datetime import datetime
 import time
-
+import os
 
 app = Flask(__name__)
 
@@ -61,6 +61,6 @@ def post_gender_predict():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
-
-    app.run()
+    port = int(os.environ.get('PORT', 33507))
+    app.run(debug=True, port=port)
 
