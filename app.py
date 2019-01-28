@@ -65,28 +65,36 @@ def post_gender_predict():
 def get_book(isbn):
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
 
-    res = requests.get("https://www.goodreads.com/book/show/"+str(book_id.text))
+    if len(book_id.text) is not 0:
+        res = requests.get("https://www.goodreads.com/book/show/"+book_id.text)
 
-    soup = BeautifulSoup(res.text,'html.parser')
+        if str(res.status_code) == "200":
 
-    reviews = soup.find_all('div', {'class': 'reviewText stacked'})
+            soup = BeautifulSoup(res.text,'html.parser')
 
-    name = soup.find_all('h1', {'itemprop': 'name'})
+            reviews = soup.find_all('div', {'class': 'reviewText stacked'})
 
-    name = str(name[0].text).strip()
+            name = soup.find_all('h1', {'itemprop': 'name'})
 
-    book_reviews = {
-        'ID': book_id,
-        'Name': name,
-        'Reviews':[]
-    }
+            name = str(name[0].text).strip()
 
-    for review in reviews:
-        texts = review.find_all("span", id=lambda value: value and value.startswith("freeTextContainer"))
-        for text in texts:
-            book_reviews['Reviews'].append({"Review": text.text})
+            book_reviews = {
+                'ID': book_id.text,
+                'Name': name,
+                'Reviews':[]
+            }
 
-    return jsonify(book_reviews)
+            for review in reviews:
+                texts = review.find_all("span", id=lambda value: value and value.startswith("freeTextContainer"))
+                for text in texts:
+                    book_reviews['Reviews'].append({"Review": text.text})
+
+            return jsonify(book_reviews)
+
+        else:
+            return jsonify({"fail_message":"couldn't connect to goodreads, try again later."})
+
+    return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
 
 if __name__=="__main__":
