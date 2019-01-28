@@ -3,6 +3,8 @@ from model.model import Model
 from datetime import datetime
 import time
 import os
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
@@ -58,6 +60,34 @@ def post_gender_predict():
         "predicted_gender":predit_result[0]
     })
     return jsonify(temp_db_predict)
+
+@app.route("/api/book/isbn/<string:isbn>", methods=['GET'])
+def get_book(isbn):
+    book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
+
+    res = requests.get("https://www.goodreads.com/book/show/"+str(book_id.text))
+
+    soup = BeautifulSoup(res.text,'html.parser')
+
+    reviews = soup.find_all('div', {'class': 'reviewText stacked'})
+
+    name = soup.find_all('h1', {'itemprop': 'name'})
+
+    name = str(name[0].text).strip()
+
+    book_reviews = {
+        'ID': book_id,
+        'Name': name,
+        'Reviews':[]
+    }
+
+    for review in reviews:
+        texts = review.find_all("span", id=lambda value: value and value.startswith("freeTextContainer"))
+        for text in texts:
+            book_reviews['Reviews'].append({"Review": text.text})
+
+    return jsonify(book_reviews)
+
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
