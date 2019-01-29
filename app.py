@@ -6,6 +6,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import nltk
+nltk.download('punkt')
 
 
 app = Flask(__name__)
