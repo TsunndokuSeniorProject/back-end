@@ -5,6 +5,8 @@ import time
 import os
 import requests
 from bs4 import BeautifulSoup
+import nltk
+
 
 app = Flask(__name__)
 
@@ -95,6 +97,15 @@ def get_book(isbn):
             return jsonify({"fail_message":"couldn't connect to goodreads, try again later."})
 
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
+
+
+
+@app.route("/api/book/nltk/", methods=['GET'])
+def get_nltk():
+    s = "aaa milk is"
+    token = nltk.word_tokenize(s)
+    token = nltk.pos_tag(token)
+    return jsonify({"fail_message":token})
 
 
 if __name__=="__main__":
