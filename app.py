@@ -88,7 +88,6 @@ def get_book(isbn):
                 desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
             except:
                 desc = ""
-            print desc
             
             author = soup.find_all('span', {'itemprop': 'name'})
             name = str(name[0].text).strip()
