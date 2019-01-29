@@ -6,6 +6,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import nltk
+import re
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
@@ -75,20 +76,35 @@ def get_book(isbn):
 
             soup = BeautifulSoup(res.text,'html.parser')
 
+            img = soup.find_all('img', {'id': 'coverImage'})
+
             reviews = soup.find_all('div', {'class': 'reviewText stacked'})
 
-            name = soup.find_all('h1', {'itemprop': 'name'})
+            name = soup.find_all('h1', {'id': 'bookTitle'})
 
+            desc = soup.find_all('div', {'id': 'description'})
+            desc = ""
+            try:
+                desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
+            except:
+                desc = ""
+            print desc
+            
+            author = soup.find_all('span', {'itemprop': 'name'})
             name = str(name[0].text).strip()
+            img = str(img[0]['src'])
+            author = str(author[0].text).strip()
 
             book_reviews = {
-                'ID': book_id.text,
+                'ID': book_id,
                 'Name': name,
-                'Reviews':[]
+                'Reviews':[],
+                'Image':img,
+                'Desc':desc
             }
-
+        
             for review in reviews:
-                texts = review.find_all("span", id=lambda value: value and value.startswith("freeTextContainer"))
+                texts = review.find_all("span", {"id":re.compile("freeText\d+")})
                 for text in texts:
                     book_reviews['Reviews'].append({"Review": text.text})
 
