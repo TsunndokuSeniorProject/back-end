@@ -108,8 +108,7 @@ def get_book(isbn):
                     book_reviews['Reviews'].append({"Review": text.text})
 
             # return jsonify(book_reviews)
-            print book_reviews
-            return jsonify({"success":"good"})
+            return jsonify(book_reviews)
 
         else:
             return jsonify({"fail_message":"couldn't connect to goodreads, try again later."})
