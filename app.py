@@ -95,7 +95,7 @@ def get_book(isbn):
             author = str(author[0].text).strip()
 
             book_reviews = {
-                'ID': book_id,
+                'ID': book_id.text,
                 'Name': name,
                 'Reviews':[],
                 'Image':img,
@@ -107,7 +107,9 @@ def get_book(isbn):
                 for text in texts:
                     book_reviews['Reviews'].append({"Review": text.text})
 
-            return jsonify(book_reviews)
+            # return jsonify(book_reviews)
+            print book_reviews
+            return jsonify({"success":"good"})
 
         else:
             return jsonify({"fail_message":"couldn't connect to goodreads, try again later."})
