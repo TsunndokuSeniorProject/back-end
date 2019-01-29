@@ -18,9 +18,10 @@ with open("./test.json", 'r') as fp:
 test = clf.predict(data['test'])
 
 
-for result, word in zip(test,data['sentence']):
+for result, word in zip(test,data['word']):
     if result == 1:
         print word
         
 
 print "done"
+print test
