@@ -36,4 +36,4 @@ if __name__ == "__main__":
     svm.loadModelState('state/subjectivity_model_state.sav')
     wf = [[0.4082482904638631, 1, 4, 0], [0.4082482904638631, 1, 2, 0], [0.4082482904638631, -1, 3, 0], [0.4082482904638631, 1, 2, 0], [0.4082482904638631, -1, 2, 0], [0.4082482904638631, -1, 4, 0]] 
     wm = [u'as', u'fuck', u'is', u'noob', u'shit', u'this']
-    print svm.test(wf, wm)
+    print (svm.test(wf, wm))
