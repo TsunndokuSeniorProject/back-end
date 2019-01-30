@@ -11,7 +11,6 @@ import nltk
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
 import sys
-reload(sys)
 sys.setdefaultencoding('utf8')
 from autocorrect import spell
 
