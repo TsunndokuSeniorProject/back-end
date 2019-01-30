@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 import nltk
 import re
+import json
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
@@ -66,7 +67,7 @@ def post_gender_predict():
     return jsonify(temp_db_predict)
 
 @app.route("/api/book/isbn/<string:isbn>", methods=['GET'])
-def get_book(isbn):
+def get_review_by_isbn(isbn):
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
 
     if len(book_id.text) is not 0:
@@ -107,7 +108,7 @@ def get_book(isbn):
                 for text in texts:
                     book_reviews['Reviews'].append({"Review": text.text})
 
-            # return jsonify(book_reviews)
+            
             return jsonify(book_reviews)
 
         else:
@@ -116,6 +117,37 @@ def get_book(isbn):
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
 
+
+@app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
+def get_book_by_genre(genre):
+    directory = "./web_scraper/goodreads/novel/"+genre+"/"
+    books = [name for name in os.listdir(directory)]
+
+    all_info = []
+    for book in books:
+        if book != ".DS_Store":
+            with open(directory+book, 'r') as fp:
+                data = json.load(fp)
+                fp.close()
+            all_info.append(data)
+    return jsonify({"all_books_in_genre":all_info})
+
+@app.route("/api/book/all_books/", methods=['GET'])
+def get_all_books():
+    directory = "./web_scraper/goodreads/novel/"
+    folders = [name for name in os.listdir(directory)]
+
+    all_info = []
+    for fol in folders:
+        if fol != ".DS_Store":
+            books = [name for name in os.listdir(directory+fol)]
+            for book in books:
+                if book != ".DS_Store":
+                    with open(directory+fol+"/"+book, 'r') as fp:
+                        data = json.load(fp)
+                        fp.close()
+                    all_info.append(data)
+    return jsonify({"all_books_in_genre":all_info})
 
 @app.route("/api/book/nltk/", methods=['GET'])
 def get_nltk():
