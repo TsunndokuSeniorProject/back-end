@@ -5,7 +5,7 @@ sys.setdefaultencoding('utf8')
 import requests
 from bs4 import BeautifulSoup
 import json
-
+import re
 def get_id_by_genre(url):
 
     res = requests.get(url)
@@ -22,40 +22,60 @@ def get_id_by_genre(url):
 
 
 def get_book_reviews(book_id, genre):
+    try:
+        print book_id
+        res = requests.get("https://www.goodreads.com/book/show/"+book_id)
 
-    res = requests.get("https://www.goodreads.com/book/show/"+book_id)
+        soup = BeautifulSoup(res.text,'html.parser')
 
-    soup = BeautifulSoup(res.text,'html.parser')
+        img = soup.find_all('img', {'id': 'coverImage'})
 
-    reviews = soup.find_all('div', {'class': 'reviewText stacked'})
+        reviews = soup.find_all('div', {'class': 'reviewText stacked'})
 
-    name = soup.find_all('h1', {'itemprop': 'name'})
+        name = soup.find_all('h1', {'id': 'bookTitle'})
 
-    name = str(name[0].text).strip()
-    book_reviews = {
-        'Genre': genre,
-        'ID': book_id,
-        'Name': name,
-        'Reviews':[]
-    }
+        desc = soup.find_all('div', {'id': 'description'})
+        desc = ""
+        try:
+            desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
+        except:
+            desc = ""
+        print desc
+        
+        author = soup.find_all('span', {'itemprop': 'name'})
+        name = str(name[0].text).strip()
+        img = str(img[0]['src'])
+        author = str(author[0].text).strip()
 
-    for review in reviews:
-        texts = review.find_all("span", id=lambda value: value and value.startswith("freeTextContainer"))
-        for text in texts:
-            book_reviews['Reviews'].append({"Review": text.text})
+        book_reviews = {
+            'Genre': genre,
+            'ID': book_id.text,
+            'Name': name,
+            'Reviews':[],
+            'Image':img,
+            'Desc':desc
+        }
+    
+        for review in reviews:
+            texts = review.find_all("span", {"id":re.compile("freeText\d+")})
+            # texts = review.find_all("span", id=lambda value: value and value.startswith("freeText"))
+            for text in texts:
+                book_reviews['Reviews'].append({"Review": text.text})
 
-    return book_reviews
+        return book_reviews
+    except:
+        print "nothing"
 
 
 
 ### don't forget to change genre!!!
 
-novel_id = get_id_by_genre('https://www.goodreads.com/genres/crime')
+novel_id = get_id_by_genre('https://www.goodreads.com/genres/romance')
 
 for book_id in novel_id:
 
-    data = get_book_reviews(book_id, "Crime")
+    data = get_book_reviews(book_id, "Romance")
 
-    with open('novel/crime/review_'+str(book_id)+'.json', 'w+') as fp:
+    with open('novel/romance/review_'+str(book_id)+'.json', 'w+') as fp:
         json.dump(data, fp)
         fp.close()

@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request
 from model.model import Model
+from model.subjectivity_model import SVM_subjectivity
+from model.word_feature import word_feature, sentence_selector
 from datetime import datetime
 import time
 import os
@@ -66,56 +68,69 @@ def post_gender_predict():
     })
     return jsonify(temp_db_predict)
 
+def scrape_data(book_id):
+
+    res = requests.get("https://www.goodreads.com/book/show/"+book_id)
+
+    if str(res.status_code) == "200":
+
+        soup = BeautifulSoup(res.text,'html.parser')
+
+        img = soup.find_all('img', {'id': 'coverImage'})
+
+        reviews = soup.find_all('div', {'class': 'reviewText stacked'})
+
+        name = soup.find_all('h1', {'id': 'bookTitle'})
+
+        desc = soup.find_all('div', {'id': 'description'})
+        desc = ""
+        try:
+            desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
+        except:
+            desc = ""
+        
+        author = soup.find_all('span', {'itemprop': 'name'})
+        name = str(name[0].text).strip()
+        img = str(img[0]['src'])
+        author = str(author[0].text).strip()
+
+        book_reviews = {
+            'ID': book_id,
+            'Name': name,
+            'Reviews':[],
+            'Image':img,
+            'Desc':desc
+        }
+        for review in reviews:
+            texts = review.find_all("span", {"id":re.compile("freeText\d+")})
+            for text in texts:
+                book_reviews['Reviews'].append({"Review": text.text})
+        return book_reviews
+    else:
+        return {"fail_message":"couldn't connect to goodreads, try again later."}
+
 @app.route("/api/book/isbn/<string:isbn>", methods=['GET'])
 def get_review_by_isbn(isbn):
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
-
     if len(book_id.text) is not 0:
-        res = requests.get("https://www.goodreads.com/book/show/"+book_id.text)
-
-        if str(res.status_code) == "200":
-
-            soup = BeautifulSoup(res.text,'html.parser')
-
-            img = soup.find_all('img', {'id': 'coverImage'})
-
-            reviews = soup.find_all('div', {'class': 'reviewText stacked'})
-
-            name = soup.find_all('h1', {'id': 'bookTitle'})
-
-            desc = soup.find_all('div', {'id': 'description'})
-            desc = ""
-            try:
-                desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
-            except:
-                desc = ""
-            
-            author = soup.find_all('span', {'itemprop': 'name'})
-            name = str(name[0].text).strip()
-            img = str(img[0]['src'])
-            author = str(author[0].text).strip()
-
-            book_reviews = {
-                'ID': book_id.text,
-                'Name': name,
-                'Reviews':[],
-                'Image':img,
-                'Desc':desc
-            }
-        
-            for review in reviews:
-                texts = review.find_all("span", {"id":re.compile("freeText\d+")})
-                for text in texts:
-                    book_reviews['Reviews'].append({"Review": text.text})
-
-            
-            return jsonify(book_reviews)
-
-        else:
-            return jsonify({"fail_message":"couldn't connect to goodreads, try again later."})
-
+        book_reviews = scrape_data(book_id.text)
+        return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
+@app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
+def get_review_by_isbn_v2(isbn):
+    book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
+    if len(book_id.text) is not 0:
+        book_reviews = scrape_data(book_id.text)
+        if not("fail_message" in book_reviews):
+            text = ""
+            for review in book_reviews['Reviews']:
+                text += review['Review'] + " "
+            word_feature_list, word_map, all_reviews_sentence = wf.create_word_feature_test_set(text)
+            subjectivity_word = svm.test(word_feature_list,word_map)
+            filtered_sentence = selector.filter(all_reviews_sentence, subjectivity_word)
+            return jsonify({"original":all_reviews_sentence, "filtered":filtered_sentence})
+    return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
 
 @app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
@@ -159,6 +174,10 @@ def get_nltk():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
+    wf = word_feature()
+    selector = sentence_selector()
+    svm = SVM_subjectivity()
+    svm.loadModelState('model/state/subjectivity_model_state.sav')
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 

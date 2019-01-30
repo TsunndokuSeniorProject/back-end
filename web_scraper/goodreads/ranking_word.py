@@ -9,12 +9,13 @@ import nltk
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
 
-
 def tokenize(text):
+
     tokens = word_tokenize(text)
-    return do_stem(tokens)
+    return tokens
 
 def do_stem(word_list):
+
     stems = []
     for item in word_list:
         stems.append(PorterStemmer().stem(item))
@@ -51,19 +52,15 @@ text = text.lower()
 
 text = re.split('\.|\?|\!|\,|\(|\)|\:|\`|\;',text)
 
-# convert all negation word into its root word
+# negation_words = do_stem(negation_words)
 
-negation_words = do_stem(negation_words)
-
-# convert all corpus word into its root word
-
-corpus = do_stem(corpus)
-
+# corpus = do_stem(corpus)
 
 token = []
-for sent in text:
-    token += tokenize(sent)
 
+for sent in text:
+
+    token += tokenize(sent)
 
 rank = {}
 for t in token:
@@ -76,13 +73,17 @@ count = 0
 
 obj = []
 for key, value in sorted(rank.iteritems(), key=lambda (k,v): (v,k), reverse = True):
-    print "%s: %s" % (key, value)
-    
+    obj.append(key)
+
+token = nltk.pos_tag(obj)
+obj = []
+for t in token:
     if count == 207:
         break
-    if key not in corpus:
-        obj.append(key)
-        count += 1
-
-
+    if t[0] not in corpus:
+        if t[1] in ["JJ","JJS","JJC","VB","VBP","RB","NN"]:
+            if len(t[0]) > 1: 
+                if t[0] not in negation_words:
+                    obj.append(t[0])
+                    count += 1
 print obj
