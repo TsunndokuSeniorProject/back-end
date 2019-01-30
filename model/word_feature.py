@@ -191,4 +191,4 @@ if __name__ == "__main__":
     #     },fp)
     #     fp.close()
     word_feature, word_map, all_reviews_sentence = wf.create_word_feature_test_set("this shiT is noob as fuck")
-    print word_feature, word_map
+    print(word_feature, word_map)
