@@ -119,7 +119,10 @@ def get_review_by_isbn(isbn):
 
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_v2(isbn):
-    global word_processor, svm, selector
+    word_processor = word_feature()
+    selector = sentence_selector()
+    svm = SVM_subjectivity()
+    svm.loadModelState('model/state/subjectivity_model_state.sav')
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
         book_reviews = scrape_data(book_id.text)
@@ -178,10 +181,7 @@ def get_nltk():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
-    word_processor = word_feature()
-    selector = sentence_selector()
-    svm = SVM_subjectivity()
-    svm.loadModelState('model/state/subjectivity_model_state.sav')
+    
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 
