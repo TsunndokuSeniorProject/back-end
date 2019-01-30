@@ -126,8 +126,11 @@ def get_review_by_isbn_v2(isbn):
             text = ""
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
-            word_feature_list, word_map, all_reviews_sentence = wf.create_word_feature_test_set(text)
+
+            word_feature_list, word_map, all_reviews_sentence = word_processor.create_word_feature_test_set(text)
+
             subjectivity_word = svm.test(word_feature_list,word_map)
+
             filtered_sentence = selector.filter(all_reviews_sentence, subjectivity_word)
             return jsonify({"original":all_reviews_sentence, "filtered":filtered_sentence})
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
@@ -174,7 +177,7 @@ def get_nltk():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
-    wf = word_feature()
+    word_processor = word_feature()
     selector = sentence_selector()
     svm = SVM_subjectivity()
     svm.loadModelState('model/state/subjectivity_model_state.sav')
