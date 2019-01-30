@@ -10,8 +10,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import nltk
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
-import sys
-sys.setdefaultencoding('utf8')
+# import sys
+# sys.setdefaultencoding('utf8')
 from autocorrect import spell
 
 
