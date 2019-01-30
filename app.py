@@ -119,6 +119,7 @@ def get_review_by_isbn(isbn):
 
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_v2(isbn):
+    global word_processor, svm, selector
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
         book_reviews = scrape_data(book_id.text)
