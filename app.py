@@ -117,6 +117,14 @@ def get_review_by_isbn(isbn):
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
+@app.route("/api/book/isbn/test/", methods=['GET'])
+def get_review_by_isbn_test():
+    directory = "./web_scraper/goodreads/novel/romance/review_1885.json"
+    with open(directory, 'r') as fp:
+        data = json.load(fp)
+        fp.close()
+    return jsonify(data)
+
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_v2(isbn):
     word_processor = word_feature()
