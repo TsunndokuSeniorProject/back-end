@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from model.model import Model
 from model.subjectivity_model import SVM_subjectivity
 from model.word_feature import word_feature, sentence_selector
+import model.imitation_of_oms as oms
 from datetime import datetime
 import time
 import os
@@ -12,7 +13,9 @@ import re
 import json
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
-
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+# nltk.download('sentiwordnet')
 app = Flask(__name__)
 
 temp_db_mutant = [{
@@ -144,9 +147,17 @@ def get_review_by_isbn_v2(isbn):
             subjectivity_word = svm.test(word_feature_list,word_map)
 
             filtered_sentence = selector.filter(all_reviews_sentence, subjectivity_word)
-            return jsonify({"original":all_reviews_sentence, "filtered":filtered_sentence})
+            filtered_sentence = ". ".join(filtered_sentence)
+            filtered_sentence = filtered_sentence.replace("\n"," ").replace(".",". ")
+            filtered_sentence = re.sub(r'[^\x00-\x7F]+','', filtered_sentence)
+            a = oms.preProcessing(filtered_sentence)
+            b = oms.tokenizeReviews(a)
+            c = oms.posTagging(b)
+            d = oms.aspectExtraction(c)
+            result = oms.identifyOpinionWords(c, d)
+            book_reviews['sentiment'] = result
+            return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
-
 
 @app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
 def get_book_by_genre(genre):
