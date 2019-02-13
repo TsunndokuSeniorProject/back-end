@@ -2,6 +2,7 @@ from keras.models import Model
 from keras.layers import Input, Dense, Reshape, merge
 from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
+from keras import optimizers
 import collections
 import os
 import zipfile
@@ -71,7 +72,7 @@ print(data[:7])
 
 window_size = 3
 vector_dim = 300
-epochs = 1000100
+epochs = 110100
 valid_size = 16  # Random set of words to evaluate similarity on.
 valid_window = 100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.random.choice(valid_window, valid_size, replace=False)
@@ -101,14 +102,14 @@ similarity = merge.dot(inputs = [target, context], normalize=True, axes=0)
 
 # now perform the dot product operation to get a similarity measure
 # dot_product = merge.Dot(normalize=False, axes=1)
-dot_product = merge.dot(inputs = [target, context], axes = 1, normalize=True)
+dot_product = merge.dot(inputs = [target, context], axes = 1, normalize=False)
 dot_product = Reshape((1,))(dot_product)
 # add the sigmoid output layer
 output = Dense(1, activation='sigmoid')(dot_product)
 # create the primary training model
 # model = Model(input_shape=[input_target, input_context], output=output)
 model = Model(input=[input_target, input_context], output=output)
-model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+model.compile(loss='binary_crossentropy', optimizer=optimizers.Adam(lr=0.001))
 
 # create a secondary validation model to run our similarity checks during training
 # validation_model = Model(input_shape=[input_target, input_context], output=similarity)
@@ -156,3 +157,6 @@ for cnt in range(epochs):
         print("Iteration {}, loss={}".format(cnt, loss))
     if cnt % 10000 == 0:
         sim_cb.run_sim()
+
+model.save(filepath="word2vec_model.h5")
+model.save_weights(filepath="word2vec_weight.h5")
