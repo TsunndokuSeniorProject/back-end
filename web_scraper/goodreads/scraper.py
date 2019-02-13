@@ -25,46 +25,55 @@ def get_book_reviews(book_id, genre):
     try:
         print book_id
         res = requests.get("https://www.goodreads.com/book/show/"+book_id)
-
-        soup = BeautifulSoup(res.text,'html.parser')
-
-        img = soup.find_all('img', {'id': 'coverImage'})
-
-        reviews = soup.find_all('div', {'class': 'reviewText stacked'})
-
-        name = soup.find_all('h1', {'id': 'bookTitle'})
-
-        desc = soup.find_all('div', {'id': 'description'})
-        desc = ""
-        try:
-            desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
-        except:
-            desc = ""
-        print desc
+        if str(res.status_code) == "200":
         
-        author = soup.find_all('span', {'itemprop': 'name'})
-        name = str(name[0].text).strip()
-        img = str(img[0]['src'])
-        author = str(author[0].text).strip()
+            soup = BeautifulSoup(res.text,'html.parser')
 
-        book_reviews = {
-            'Genre': genre,
-            'ID': book_id.text,
-            'Name': name,
-            'Reviews':[],
-            'Image':img,
-            'Desc':desc
-        }
-    
-        for review in reviews:
-            texts = review.find_all("span", {"id":re.compile("freeText\d+")})
-            # texts = review.find_all("span", id=lambda value: value and value.startswith("freeText"))
-            for text in texts:
-                book_reviews['Reviews'].append({"Review": text.text})
+            img = soup.find_all('img', {'id': 'coverImage'})
 
-        return book_reviews
+            reviews = soup.find_all('div', {'class': 'reviewText stacked'})
+
+            name = soup.find_all('h1', {'id': 'bookTitle'})
+
+            desc = soup.find_all('div', {'id': 'description'})
+            desc = ""
+            try:
+                desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
+            except:
+                desc = ""
+                print "no desc", sys.exc_info()[0]
+            try:
+                author = soup.find_all('span', {'itemprop': 'name'})
+                name = str(name[0].text).strip()
+                img = str(img[0]['src'])
+                author = str(author[0].text).strip()
+            except:
+                author = ""
+                name = ""
+                img = ""
+                author = ""
+                print "no info", sys.exc_info()[0]
+            book_reviews = {
+                'Genre': genre,
+                'ID': book_id,
+                'Name': name,
+                'Reviews':[],
+                'Image':img,
+                'Desc':desc
+            }
+            for review in reviews:
+                try:
+                    texts = review.find_all("span", {"id":re.compile("freeText\d+")})
+                    # texts = review.find_all("span", id=lambda value: value and value.startswith("freeText"))
+                    for text in texts:
+                        book_reviews['Reviews'].append({"Review": text.text})
+                except:
+                    pass
+
+            return book_reviews
     except:
-        print "nothing"
+        raise
+        print "error ", sys.exc_info()[0]
 
 
 
