@@ -91,7 +91,7 @@ def get_review_by_isbn(isbn):
 
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_v2(isbn):
-    word_processor = word_feature()
+    
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
         book_reviews = scraper.get_book_reviews(book_id.text)
@@ -99,9 +99,11 @@ def get_review_by_isbn_v2(isbn):
             text = ""
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
-
+            word_processor = word_feature()
             word_feature_list, word_map, all_reviews_sentence = word_processor.create_word_feature_test_set(text)
-
+            selector = sentence_selector()
+            svm = SVM_subjectivity()
+            svm.loadModelState('model/state/subjectivity_model_state.sav')
             subjectivity_word = svm.test(word_feature_list,word_map)
 
             filtered_sentence = selector.filter(all_reviews_sentence, subjectivity_word)
@@ -160,9 +162,7 @@ def get_all_books():
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
     
-    selector = sentence_selector()
-    svm = SVM_subjectivity()
-    svm.loadModelState('model/state/subjectivity_model_state.sav')
+    
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 
