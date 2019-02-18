@@ -3,6 +3,7 @@ from model.model import Model
 from model.subjectivity_model import SVM_subjectivity
 from model.word_feature import word_feature, sentence_selector
 import model.imitation_of_oms as oms
+import web_scraper.goodreads.scraper as scraper
 from datetime import datetime
 import time
 import os
@@ -18,6 +19,8 @@ nltk.download('averaged_perceptron_tagger')
 # nltk.download('sentiwordnet')
 app = Flask(__name__)
 
+####### Testing API #######
+
 temp_db_mutant = [{
     "id":"weapon-X",
     "name":"Logan Paul"
@@ -29,15 +32,19 @@ temp_db_predict = [{
     "predicted_gender": "ApacheHelicopter",
 }]
 
-@app.route('/api/1.0/test', methods=['GET'])
+@app.route('/', methods=['GET'])
+def welcome():
+    return jsonify({'acknowledge': "welcome to Tsun-Do-Ku api"})
+
+@app.route('/api/test', methods=['GET'])
 def get_test():
     return jsonify({'test': "this is an example"})
 
-@app.route("/api/1.0/test/mutant", methods=['GET'])
+@app.route("/api/test/mutant", methods=['GET'])
 def get_mutant():
     return jsonify(temp_db_mutant)
 
-@app.route("/api/1.0/test/mutant", methods=['POST'])
+@app.route("/api/test/mutant", methods=['POST'])
 def post_mutant():
     req = request.json
     if not req or not 'id' in req or not 'name' in req:
@@ -45,11 +52,11 @@ def post_mutant():
     temp_db_mutant.append(req)
     return jsonify(temp_db_mutant)
 
-@app.route("/api/1.0/predict", methods=['GET'])
+@app.route("/api/test/predict", methods=['GET'])
 def get_gender_predict():
     return jsonify(temp_db_predict)
 
-@app.route("/api/1.0/predict/<int:id>", methods=['GET'])
+@app.route("/api/test/predict/<int:id>", methods=['GET'])
 def get_gender_predict_id(id):
     id = id-1
     if id > len(temp_db_predict):
@@ -57,7 +64,7 @@ def get_gender_predict_id(id):
     else:
         return jsonify(temp_db_predict[id])
 
-@app.route("/api/1.0/predict", methods=['POST'])
+@app.route("/api/test/predict", methods=['POST'])
 def post_gender_predict():
     req = request.json
     if not req or not 'height' in req or not 'weight' in req:
@@ -71,72 +78,23 @@ def post_gender_predict():
     })
     return jsonify(temp_db_predict)
 
-def scrape_data(book_id):
 
-    res = requests.get("https://www.goodreads.com/book/show/"+book_id)
-
-    if str(res.status_code) == "200":
-
-        soup = BeautifulSoup(res.text,'html.parser')
-
-        img = soup.find_all('img', {'id': 'coverImage'})
-
-        reviews = soup.find_all('div', {'class': 'reviewText stacked'})
-
-        name = soup.find_all('h1', {'id': 'bookTitle'})
-
-        desc = soup.find_all('div', {'id': 'description'})
-        desc = ""
-        try:
-            desc = str(desc[0].find_all("span", {"id":re.compile("freeText\d+")})[0].text).strip()
-        except:
-            desc = ""
-        
-        author = soup.find_all('span', {'itemprop': 'name'})
-        name = str(name[0].text).strip()
-        img = str(img[0]['src'])
-        author = str(author[0].text).strip()
-
-        book_reviews = {
-            'ID': book_id,
-            'Name': name,
-            'Reviews':[],
-            'Image':img,
-            'Desc':desc
-        }
-        for review in reviews:
-            texts = review.find_all("span", {"id":re.compile("freeText\d+")})
-            for text in texts:
-                book_reviews['Reviews'].append({"Review": text.text})
-        return book_reviews
-    else:
-        return {"fail_message":"couldn't connect to goodreads, try again later."}
+####### Production API #######
 
 @app.route("/api/book/isbn/<string:isbn>", methods=['GET'])
 def get_review_by_isbn(isbn):
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
-        book_reviews = scrape_data(book_id.text)
+        book_reviews = scraper.get_book_reviews(book_id.text)
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
-@app.route("/api/book/isbn/test/", methods=['GET'])
-def get_review_by_isbn_test():
-    directory = "./web_scraper/goodreads/novel/romance/review_1885.json"
-    with open(directory, 'r') as fp:
-        data = json.load(fp)
-        fp.close()
-    return jsonify(data)
-
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_v2(isbn):
-    word_processor = word_feature()
-    selector = sentence_selector()
-    svm = SVM_subjectivity()
-    svm.loadModelState('model/state/subjectivity_model_state.sav')
+    
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
-        book_reviews = scrape_data(book_id.text)
+        book_reviews = scraper.get_book_reviews(book_id.text)
         if not("fail_message" in book_reviews):
             text = ""
             for review in book_reviews['Reviews']:
@@ -158,6 +116,14 @@ def get_review_by_isbn_v2(isbn):
             book_reviews['sentiment'] = result
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
+
+@app.route("/api/book/isbn/test/", methods=['GET'])
+def get_review_by_isbn_test():
+    directory = "./web_scraper/goodreads/novel/romance/review_1885.json"
+    with open(directory, 'r') as fp:
+        data = json.load(fp)
+        fp.close()
+    return jsonify(data)
 
 @app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
 def get_book_by_genre(genre):
@@ -190,17 +156,13 @@ def get_all_books():
                     all_info.append(data)
     return jsonify({"all_books_in_genre":all_info})
 
-@app.route("/api/book/nltk/", methods=['GET'])
-def get_nltk():
-    s = "aaa milk is"
-    token = nltk.word_tokenize(s)
-    token = nltk.pos_tag(token)
-    return jsonify({"fail_message":token})
-
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
-    
+    word_processor = word_feature()
+    selector = sentence_selector()
+    svm = SVM_subjectivity()
+    svm.loadModelState('model/state/subjectivity_model_state.sav')
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 
