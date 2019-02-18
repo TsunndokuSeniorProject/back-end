@@ -136,6 +136,8 @@ class sentence_selector:
                     filtered_sentence.append(sentence)
                     break
         return filtered_sentence
+
+
 if __name__ == "__main__":
 
     wf = word_feature()
