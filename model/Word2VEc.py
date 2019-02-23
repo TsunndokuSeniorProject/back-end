@@ -2,8 +2,10 @@ from keras.models import Model
 from keras.layers import Input, Dense, Reshape, merge
 from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
+from keras.utils import generic_utils
 from keras import optimizers
 import collections
+import spacy
 import os
 import zipfile
 import numpy as np
@@ -11,6 +13,15 @@ import tensorflow as tf
 import json
 import keras
 from urllib import request
+from keras.callbacks import History 
+
+
+
+def read_my_data(directory):
+    for file in directory:
+        with open(directory+file, 'r') as fp:
+            data = json.load(fp)
+
 
 
 def maybe_download(filename, url, expected_bytes):
@@ -68,8 +79,8 @@ def collect_data(vocabulary_size=10000):
 
 
 # function to test model
-def test_model(data_path):
-    model = keras.models.load_model("C:/Users/hpEnvy/back-end/model/word2vec_model.h5")
+def test_model(data_path, vocab_size):
+    model, validation_model = initialize_model(vocab_size, 300)
     reviews = []
     for file in os.listdir(data_path):
         with open(data_path+file, 'r') as fp:
@@ -77,18 +88,104 @@ def test_model(data_path):
             fp.close()
             
             for review in data['Reviews']:
-                reviews.append(review)
+                for single in review['Review']:
+                    
+                    reviews.append(single)
     tokenizer = keras.preprocessing.text.Tokenizer()
     tokenizer.fit_on_texts(reviews)
-    
-                
+    sequences = tokenizer.texts_to_sequences(reviews)
+    new_sequences = []
+    sampling_table = sequence.make_sampling_table(vocab_size)
+    for seq in sequences:
+        if type(seq) == list:
+            if len(seq) > 0:
+                new_sequences.append(seq[0])
+        else:
+            new_sequences.append(seq)
+    couples, labels = keras.preprocessing.sequence.skipgrams(new_sequences, vocab_size, sampling_table=sampling_table)
+    model.load_weights("C:/Users/USER/Back-end/model/word2vec_weight.h5")
+    word_target, word_context = zip(*couples)
+    word_target = np.array(word_target, dtype="int32")
+    word_context = np.array(word_context, dtype="int32")
+    result = model.test_on_batch([word_target, word_context],labels)
+    print(result)
+
+def train_model(data_path, vocab_size, num_epochs):
+    model, validation_model = initialize_model(vocab_size, 300)
+    reviews = []
+    history = History()
+
+    for file in os.listdir(data_path):
+        with open(data_path+file, 'r') as fp:
+            data = json.load(fp)
+            fp.close()
+            
+            for review in data['Reviews']:
+                for single in review['Review']:
+                    
+                    reviews.append(single)
+    tokenizer = keras.preprocessing.text.Tokenizer()
+    tokenizer.fit_on_texts(reviews)
+    sequences = tokenizer.texts_to_sequences(reviews)
+    new_sequences = []
+    sampling_table = sequence.make_sampling_table(vocab_size)
+    for seq in sequences:
+        if type(seq) == list:
+            if len(seq) > 0:
+                new_sequences.append(seq[0])
+        else:
+            new_sequences.append(seq)
+    couples, labels = keras.preprocessing.sequence.skipgrams(new_sequences, vocab_size, sampling_table=sampling_table)
+    word_target, word_context = zip(*couples)
+    word_target = np.array(word_target, dtype="int32")
+    word_context = np.array(word_context, dtype="int32")
+    history = model.fit([word_target, word_context], labels, epochs=4, callbacks=[history], validation_split=0.33   )
+    model.save_weights("word2vec_weights.h5")
+    print(history.history)
 
 
-test_model("C:/Users/hpEnvy/Downloads/crime-20190219T153822Z-001/crime/")
 
-# vocab_size = 10000
+def initialize_model(vocab_size, vector_dim):
+    # create some input variables
+    input_target = Input((1,))
+    input_context = Input((1,))
+
+    embedding = Embedding(vocab_size, vector_dim, input_length=1, name='embedding')
+    target = embedding(input_target)
+    target = Reshape((vector_dim, 1))(target)
+    context = embedding(input_context)
+    context = Reshape((vector_dim, 1))(context)
+
+    # setup a cosine similarity operation which will be output in a secondary model
+    similarity = merge.dot(inputs = [target, context], normalize=True, axes=0)
+    # similarity = merge([target, context], mode='cos', dot_axes=0)
+
+    # now perform the dot product operation to get a similarity measure
+    # dot_product = merge.Dot(normalize=False, axes=1)
+    dot_product = merge.dot(inputs = [target, context], axes = 1, normalize=False)
+    dot_product = Reshape((1,))(dot_product)
+    # add the sigmoid output layer
+    output = Dense(1, activation='sigmoid')(dot_product)
+    # create the primary training model
+    # model = Model(input_shape=[input_target, input_context], output=output)
+    model = Model(input=[input_target, input_context], output=output)
+    model.compile(loss='binary_crossentropy', optimizer=optimizers.Adam(lr=0.001))
+    # create a secondary validation model to run our similarity checks during training
+    # validation_model = Model(input_shape=[input_target, input_context], output=similarity)
+    validation_model = Model(input=[input_target, input_context], output=similarity)
+    return model, validation_model
+
+
+
+vocab_size = 10000
+
+train_model("C:/Users/USER/Downloads/romance-20190204T074007Z-001/romance/", vocab_size, 100000)
+test_model("C:/Users/USER/Downloads/romance-20190204T074007Z-001/romance/", 10000)
+
 # data, count, dictionary, reverse_dictionary = collect_data(vocabulary_size=vocab_size)
 # print(data[:7])
+
+
 
 # window_size = 3
 # vector_dim = 300
@@ -100,40 +197,12 @@ test_model("C:/Users/hpEnvy/Downloads/crime-20190219T153822Z-001/crime/")
 # sampling_table = keras.preprocessing.sequence.make_sampling_table(vocab_size)
 # couples, labels = keras.preprocessing.sequence.skipgrams(data, vocab_size, window_size=window_size,
 #                                                          sampling_table=sampling_table)
-# word_target, word_context = zip(*couples)
-# word_target = np.array(word_target, dtype="int32")
-# word_context = np.array(word_context, dtype="int32")
+                                                         
+# X = np.array(couples, dtype="int32")
 
 # print(couples[:10], labels[:10])
 
-# # create some input variables
-# input_target = Input((1,))
-# input_context = Input((1,))
-
-# embedding = Embedding(vocab_size, vector_dim, input_length=1, name='embedding')
-# target = embedding(input_target)
-# target = Reshape((vector_dim, 1))(target)
-# context = embedding(input_context)
-# context = Reshape((vector_dim, 1))(context)
-
-# # setup a cosine similarity operation which will be output in a secondary model
-# similarity = merge.dot(inputs = [target, context], normalize=True, axes=0)
-# # similarity = merge([target, context], mode='cos', dot_axes=0)
-
-# # now perform the dot product operation to get a similarity measure
-# # dot_product = merge.Dot(normalize=False, axes=1)
-# dot_product = merge.dot(inputs = [target, context], axes = 1, normalize=False)
-# dot_product = Reshape((1,))(dot_product)
-# # add the sigmoid output layer
-# output = Dense(1, activation='sigmoid')(dot_product)
-# # create the primary training model
-# # model = Model(input_shape=[input_target, input_context], output=output)
-# model = Model(input=[input_target, input_context], output=output)
-# model.compile(loss='binary_crossentropy', optimizer=optimizers.Adam(lr=0.001))
-
-# # create a secondary validation model to run our similarity checks during training
-# # validation_model = Model(input_shape=[input_target, input_context], output=similarity)
-# validation_model = Model(input=[input_target, input_context], output=similarity)
+# model, validation_model = initialize_model(vocab_size, 300)
 
 
 # class SimilarityCallback:
