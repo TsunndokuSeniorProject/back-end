@@ -139,7 +139,7 @@ def train_model(data_path, vocab_size, num_epochs):
     word_target, word_context = zip(*couples)
     word_target = np.array(word_target, dtype="int32")
     word_context = np.array(word_context, dtype="int32")
-    history = model.fit([word_target, word_context], labels, epochs=4, callbacks=[history], validation_split=0.33   )
+    history = model.fit([word_target, word_context], labels, epochs=100, callbacks=[history], validation_split=0.33   )
     model.save_weights("word2vec_weights.h5")
     print(history.history)
 
