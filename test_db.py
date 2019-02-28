@@ -11,3 +11,4 @@ users = db['Users']
 
 
 print(users.find_one({"name":"test"}))
+print("test")
