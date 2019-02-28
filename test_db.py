@@ -12,24 +12,26 @@ db = client.get_default_database()
 
 books = db['Books']
 
-# start = time.time()
-# query = books.find({"Genre":"/^{}$/i".format("crime")}).limit(50)
-# que_time = time.time()
-# for doc in query:
-#     pprint(doc)
-# print(start-que_time)
+start = time.time()
+query = books.find({}, {"_id":1, "Name":1})
+que_time = time.time()
+i = 0
+for doc in query:
+    i += 1
+    pprint(doc)
+print(start-que_time)
+print(i)
 
+# genres = os.listdir("web_scraper/goodreads/novel/")
 
-genres = os.listdir("web_scraper/goodreads/novel/")
-
-for genre in genres:
-    books_list = os.listdir("web_scraper/goodreads/novel/{}/".format(genre))
-    for book in books_list:
-        if book != ".DS_Store":
-            with open("web_scraper/goodreads/novel/{}/{}".format(genre, book), "r") as fp:
-                data = json.load(fp)
-                data["_id"] = data["ID"]
-            try:
-                books.insert(data)
-            except:
-                continue
+# for genre in genres:
+#     books_list = os.listdir("web_scraper/goodreads/novel/{}/".format(genre))
+#     for book in books_list:
+#         if book != ".DS_Store":
+#             with open("web_scraper/goodreads/novel/{}/{}".format(genre, book), "r") as fp:
+#                 data = json.load(fp)
+#                 data["_id"] = data["ID"]
+#             try:
+#                 books.insert(data)
+#             except:
+#                 continue

@@ -126,17 +126,23 @@ def get_review_by_isbn_with_predict_result(isbn):
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
-@app.route("/api/book/isbn/test/", methods=['GET'])
-def get_review_by_isbn_test():
-    directory = "./web_scraper/goodreads/novel/romance/review_1885.json"
-    with open(directory, 'r') as fp:
-        data = json.load(fp)
-        fp.close()
-    return jsonify(data)
+@app.route("/api/book/<string:id>", methods=['GET'])
+def get_book_by_id(id):
+    query = books.find_one({"_id":str(id)})
+    
+    return jsonify({"book_by_id":query})
+
+
+@app.route("/api/all_books/list", methods=['GET'])
+def get_books_list():
+    query = books.find({}, {"_id":1, "Name":1, "Genre":1})
+    all_info = []
+    for doc in query:
+        all_info.append(doc)
+    return jsonify({"all_books":all_info})
 
 @app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
 def get_book_by_genre(genre):
-    print(genre)
     query = books.find({"Genre":genre.capitalize()})
     all_info = []
     for doc in query:
