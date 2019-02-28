@@ -25,6 +25,7 @@ def get_id_by_genre(url):
     return book_id
 
 def collect_id(url):
+
     book_id_list = []
 
     res = requests.get(url, headers=headers)
@@ -48,9 +49,24 @@ def collect_id(url):
     # time.sleep(30)
     return book_id_list
 
-def collect_id_from_file():
-    soup = BeautifulSoup(open("html/"), "html.parser")
+def collect_id_from_file(directory):
+    book_id_list = []
+    html_files = os.listdir(directory)
 
+    for html in html_files:
+        if html != ".DS_Store":
+            soup = BeautifulSoup(open(directory+html), "html.parser")
+            href = soup.find_all("a", {"class": "bookTitle"})
+        
+            id_pattern = re.compile("\d+")
+            for link in href:
+                print(link)
+            for link in href:
+                book_id = id_pattern.findall(str(link))
+                if len(book_id) > 0:
+                    print("     "+book_id[0])
+                    book_id_list.append(book_id[0])
+    return book_id_list
 
 def get_book_reviews(book_id):
     print(book_id)
@@ -118,24 +134,36 @@ if __name__ == "__main__":
     # pprint.pprint(novel)
 
 
-    book_id_list = []
-    for page in range(1,3):
-        book_id_list += collect_id("https://www.goodreads.com/shelf/show/crime?page="+str(page))
+    # book_id_list = []
+    # for page in range(1,3):
+    #     book_id_list += collect_id("https://www.goodreads.com/shelf/show/crime?page="+str(page))
 
-    book_id_list = list(set(book_id_list))
-    print(book_id_list)
+    # book_id_list = list(set(book_id_list))
+    # print(book_id_list)
+
     # time.sleep(10)
 
     # print("all id "+str(len(book_id_list)))
-    # for book_id in book_id_list:
-    #     print("start "+book_id)
-    #     data = get_book_reviews(book_id)
-    #     print("get review "+book_id)
-    #     path = "novel/"+str(data["Genre"]).lower()
-    #     if not os.path.exists(path):
-    #         os.makedirs(path)
-    #     print("genre "+str(data["Genre"]).lower())
-    #     with open(path+"/review_"+str(book_id)+".json", "w+") as fp:
-    #         json.dump(data, fp)
-    #         fp.close()        
-    #     print("done "+book_id)
+    book_id_list = list(set(collect_id_from_file("html/thriller/")))
+    with open("memo.json", "r") as fp:
+        hit = json.load(fp)
+    memo = hit["hit"]
+    for book_id in book_id_list:
+        if book_id not in memo:
+            print("start "+book_id)
+            data = get_book_reviews(book_id)
+            print("get review "+book_id)
+            path = "novel/"+str(data["Genre"]).lower()
+            if not os.path.exists(path):
+                os.makedirs(path)
+            print("genre "+str(data["Genre"]).lower())
+            with open(path+"/review_"+str(book_id)+".json", "w+") as fp:
+                json.dump(data, fp)
+                fp.close()        
+            print("done "+book_id)
+            memo.append(book_id)
+            with open("memo.json", "w") as fp:
+                json.dump({
+                    "hit":memo
+                }, fp)
+    
