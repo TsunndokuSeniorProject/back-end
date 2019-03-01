@@ -12,11 +12,19 @@ from bs4 import BeautifulSoup
 import nltk
 import re
 import json
+import pymongo
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
 app = Flask(__name__)
 
+uri = "mongodb://tsundoku_db:tsundoku_db_007@ds133875.mlab.com:33875/tsundoku"
+
+client = pymongo.MongoClient(uri)
+
+db = client.get_default_database()
+
+books = db['Books']
 
 ####### Testing API #######
 
@@ -89,7 +97,7 @@ def get_review_by_isbn(isbn):
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
 @app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
-def get_review_by_isbn_v2(isbn):
+def get_review_by_isbn_with_predict_result(isbn):
     
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
@@ -118,45 +126,37 @@ def get_review_by_isbn_v2(isbn):
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
-@app.route("/api/book/isbn/test/", methods=['GET'])
-def get_review_by_isbn_test():
-    directory = "./web_scraper/goodreads/novel/romance/review_1885.json"
-    with open(directory, 'r') as fp:
-        data = json.load(fp)
-        fp.close()
-    return jsonify(data)
+@app.route("/api/book/<string:id>", methods=['GET'])
+def get_book_by_id(id):
+    query = books.find_one({"_id":str(id)})
+    
+    return jsonify({"book_by_id":query})
+
+
+@app.route("/api/all_books/list", methods=['GET'])
+def get_books_list():
+    query = books.find({}, {"_id":1, "Name":1, "Genre":1})
+    all_info = []
+    for doc in query:
+        all_info.append(doc)
+    return jsonify({"all_books":all_info})
 
 @app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
 def get_book_by_genre(genre):
-    directory = "./web_scraper/goodreads/novel/"+genre+"/"
-    books = [name for name in os.listdir(directory)]
-
+    query = books.find({"Genre":genre.capitalize()})
     all_info = []
-    for book in books:
-        if book != ".DS_Store":
-            with open(directory+book, 'r') as fp:
-                data = json.load(fp)
-                fp.close()
-            all_info.append(data)
+    for doc in query:
+        all_info.append(doc)
     return jsonify({"all_books_in_genre":all_info})
 
 @app.route("/api/book/all_books/", methods=['GET'])
 def get_all_books():
-    directory = "./web_scraper/goodreads/novel/"
-    folders = [name for name in os.listdir(directory)]
-
+    
+    query = books.find().limit(50)
     all_info = []
-    for fol in folders:
-        if fol != ".DS_Store":
-            books = [name for name in os.listdir(directory+fol)]
-            for book in books:
-                if book != ".DS_Store":
-                    with open(directory+fol+"/"+book, 'r') as fp:
-                        data = json.load(fp)
-                        fp.close()
-                    all_info.append(data)
+    for doc in query:
+        all_info.append(doc)
     return jsonify({"all_books_in_genre":all_info})
-
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
