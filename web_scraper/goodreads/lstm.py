@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 import re
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-
+import pandas as pd
 
 def clean_str(string):
     string = re.sub(r"\\", "", string)
