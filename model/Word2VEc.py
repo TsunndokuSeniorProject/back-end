@@ -115,26 +115,23 @@ def test_model(data_path, vocab_size):
 
 def train_model(data_path, vocab_size, num_epochs):
     model, validation_model = initialize_model(vocab_size, 300)
-    reviews = []
     history = History()
-    fantasy = "C:/Users/USER/Back-end/web_scraper/goodreads/novel/fantasy/"
-    for file in os.listdir(data_path):
-        with open(data_path+file, 'r') as fp:
-            data = json.load(fp)
-            fp.close()
-        for review in data['Reviews']:
-            reviews.append(review['Review'])
-    for file in os.listdir(fantasy):
-        with open(fantasy+file, 'r') as fp:
-            data = json.load(fp)
-            fp.close()
-        for review in data['Reviews']:
-            print(review['Review'])
-            reviews.append(review['Review'])
+    reviews = []
+    directory = "C:/Users/USER/Downloads/novel-20190228T082613Z-001/novel/"
+    
+    for file in os.listdir(directory):
+        for subdir in os.listdir(directory+file):
+            with open(directory+file+"/"+subdir, 'r') as fp:
+                data = json.load(fp)
+                for single in data['Reviews']:
+                    reviews.append(single['Review'])
+                    
+
+                fp.close()
             
     tokenizer = keras.preprocessing.text.Tokenizer()
     tokenizer.fit_on_texts(reviews)
-    print(tokenizer.num_words)
+    print(len(tokenizer.index_word))
     sequences = tokenizer.texts_to_sequences(reviews)
     new_sequences = []
     sampling_table = sequence.make_sampling_table(vocab_size)
@@ -188,7 +185,7 @@ def initialize_model(vocab_size, vector_dim):
 
 
 
-vocab_size = 100000
+vocab_size = 1000000
 test = "./web_scraper/goodreads/novel/romance/"
 train_model(test, vocab_size, 20)
 test_model("C:/Users/USER/Back-end/web_scraper/goodreads/novel/fantasy/", 100000)
