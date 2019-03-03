@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import nltk 
-
+import spacy
 
 def split_into_sentences(text):
     alphabets= "([A-Za-z])"
@@ -12,6 +12,9 @@ def split_into_sentences(text):
     websites = "[.](com|net|org|io|gov|me|edu)"
     digits = "([0-9])"
     # text = text.lower()
+    
+    text = re.sub(r'\"(.+?)\"', "<Replace>", text)
+    text = re.sub(r'\”(.+?)\”', "<Replace>", text)
     text = " " + text + "  "
     text = text.replace("\n"," ")
     text = re.sub(prefixes,"\\1<prd>",text)
@@ -26,6 +29,7 @@ def split_into_sentences(text):
     text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
     text = re.sub(" " + alphabets + "[.]"," \\1<prd>",text)
     text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
+    
     if "”" in text:
         text = text.replace(".”","”.")
     if "\"" in text:
@@ -61,7 +65,7 @@ def opinion_sentence_filter(splited_review):
         review_with_pos.append([sentence,sentence_only_pos.strip()])
     opinion_sentences = []
     for review in review_with_pos:
-        if "JJ" in review[1] or "RB" in review:
+        if "JJ" in review[1] or "RB" in review[1]:
             opinion_sentences.append(review[0])
     return opinion_sentences
 
