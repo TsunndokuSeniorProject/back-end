@@ -1,5 +1,5 @@
 from keras.optimizers import Adam
-from keras.layers import LSTM, Embedding, Dense, Input
+from keras.layers import LSTM, Embedding, Dense, Input, CuDNNLSTM, Dropout
 from keras import Model
 import os
 import json
@@ -11,6 +11,8 @@ import re
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 import pandas as pd
+import random
+
 
 def clean_str(string):
     string = re.sub(r"\\", "", string)
@@ -25,24 +27,63 @@ EMBEDDING_DIM = 100
 VALIDATION_SPLIT = 0.2
 
 
-directory = "C:/Users/USER/Desktop/sentiment/sentiment-analysis-on-movie-reviews/"
-texts = []
+
+reviews = []
 labels = []
-with open(directory+'train.tsv') as tsvfile:
-  reader = csv.DictReader(tsvfile, dialect='excel-tab')
-  for row in reader:
-    texts.append(list(row.values())[2])
-    labels.append(list(row.values())[3])
+directory = "C:/Users/USER/Downloads/1-472.txt"
+
+with open(directory, "r", encoding="utf-8") as fp:
+    data = fp.readlines()
+
+zeros = []
+zero_label = []
+
+skip = 0
+for sent in data:
+    if skip == 0:
+        skip += 1
+        continue
+    temp = sent.rsplit(',', 1)
+    if temp[1] == ' 0\n':
+        zeros.append(temp[0])
+        zero_label.append(temp[1])
+    else:
+        reviews.append(temp[0])
+        labels.append(temp[1])
+
+wtf_zeros = random.sample(zeros, 60)
+ok_labels = []
+for smth in labels:
+    ok_labels.append(smth.replace("\n", "").replace(" ", ""))
+for smth in wtf_zeros:
+    ok_labels.append('0')
+reviews += wtf_zeros
+count = {}
+for single in ok_labels:
+    if single in count:
+        count[single] += 1
+    else:
+        count[single] = 1
+
+print(count)
+# directory = "C:/Users/USER/Desktop/sentiment/sentiment-analysis-on-movie-reviews/"
+# texts = []
+# labels = []
+# with open(directory+'train.tsv') as tsvfile:
+#     reader = csv.DictReader(tsvfile, dialect='excel-tab')
+#     for row in reader:
+#         texts.append(list(row.values())[2])
+#         labels.append(list(row.values())[3])
 
 tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
-tokenizer.fit_on_texts(texts)
-sequences = tokenizer.texts_to_sequences(texts)
+tokenizer.fit_on_texts(reviews)
+sequences = tokenizer.texts_to_sequences(reviews)
 
 word_index = tokenizer.word_index
 print('Number of Unique Tokens', len(word_index))
 
 data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
-labels = to_categorical(np.asarray(labels))
+labels = to_categorical(np.asarray(ok_labels))
 print('Shape of Data Tensor:', data.shape)
 print('Shape of Label Tensor:', labels.shape)
 
@@ -81,13 +122,15 @@ embedding_layer = Embedding(len(word_index) + 1,
 
 sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 embedded_sequences = embedding_layer(sequence_input)
+# embeddings = Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)(sequence_input)
 lstm_1 = LSTM(units=32, dropout=0.2, return_sequences=True)(embedded_sequences)
-lstm_last = LSTM(units=32, dropout=0.2)(lstm_1)
-output = Dense(5,activation='softmax')(lstm_last)
+lstm_last = LSTM(units=32)(lstm_1)
+output = Dense(7,activation='softmax')(lstm_last)
 
 model = Model(sequence_input, output)
 model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['acc'])
 
+# model.load_weights('model_lstm.hdf5')
 
 print("Simplified LSTM neural network")
 model.summary()

@@ -12,8 +12,9 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.layers import Embedding
 from keras.layers import Dense, Input, Flatten
-from keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout
+from keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout, BatchNormalization, Activation
 from keras.models import Model
+from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
@@ -81,36 +82,41 @@ f.close()
 
 print('Total %s word vectors in Glove 6B 100d.' % len(embeddings_index))
 
-embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
-for word, i in word_index.items():
-    embedding_vector = embeddings_index.get(word)
-    if embedding_vector is not None:
-        # words not found in embedding index will be all-zeros.
-        embedding_matrix[i] = embedding_vector
+# embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
+# for word, i in word_index.items():
+#     embedding_vector = embeddings_index.get(word)
+#     if embedding_vector is not None:
+#         # words not found in embedding index will be all-zeros.
+#         embedding_matrix[i] = embedding_vector
 
-embedding_layer = Embedding(len(word_index) + 1,
-                            EMBEDDING_DIM,weights=[embedding_matrix],
-                            input_length=MAX_SEQUENCE_LENGTH,trainable=True)
+# embedding_layer = Embedding(len(word_index) + 1,
+#                             EMBEDDING_DIM,weights=[embedding_matrix],
+#                             input_length=MAX_SEQUENCE_LENGTH,trainable=True)
 
 
 sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-embedded_sequences = embedding_layer(sequence_input)
-l_cov1= Conv1D(128, 5, activation='relu')(embedded_sequences)
-l_pool1 = MaxPooling1D(5)(l_cov1)
-l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
-l_pool2 = MaxPooling1D(5)(l_cov2)
-l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
-l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
-l_flat = Flatten()(l_pool3)
-l_dense = Dense(128, activation='relu')(l_flat)
-output = Dense(5, activation='softmax')(l_dense)
+# embedded_sequences = embedding_layer(sequence_input)
+embedding = Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)(sequence_input)
+cov1= Conv1D(96, 5, activation='relu')(embedding)
+bn = BatchNormalization()(cov1)
+pool1 = MaxPooling1D(5)(bn)
+cov2 = Conv1D(256, 5, activation='relu')(pool1)
+bn2 = BatchNormalization()(cov2)
+pool2 = MaxPooling1D(5)(bn2)
+cov3 = Conv1D(384, 5, activation='relu')(pool2)
+# cov4 = Conv1D(128, 5, activation='relu')(cov3)
+bn3 = BatchNormalization()(cov3)
+pool3 = MaxPooling1D(35)(bn3)  # global max pooling
+flat = Flatten()(pool3)
+dense = Dense(128, activation='relu')(flat)
+output = Dense(5, activation='softmax')(dense)
 
 model = Model(sequence_input, output)
 model.compile(loss='categorical_crossentropy',
-              optimizer='rmsprop',
+              optimizer=Adam(),
               metrics=['acc'])
 
 print("Simplified convolutional neural network")
 model.summary()
 cp=ModelCheckpoint('model_cnn.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=15, batch_size=128,callbacks=[cp])
+history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=7, batch_size=32,callbacks=[cp])
