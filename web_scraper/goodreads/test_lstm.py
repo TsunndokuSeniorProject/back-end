@@ -1,5 +1,5 @@
 from keras.optimizers import Adam
-from keras.layers import LSTM, Embedding, Dense, Input, Dropout, Bidirectional
+from keras.layers import LSTM, Embedding, Dense, Input, Dropout, Bidirectional, GRU
 from keras import Model
 import os
 import json
@@ -83,15 +83,17 @@ y_val = labels[-nb_validation_samples:]
 sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 embedded_sequences = Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)(sequence_input)
 # embedded_sequences = embedding_layer(sequence_input)
-lstm_1 = Bidirectional(LSTM(units=32, dropout=0.2, return_sequences=True))(embedded_sequences)
-lstm_last = Bidirectional(LSTM(units=32, dropout=0.2))(lstm_1)
-output = Dense(5,activation='softmax')(lstm_last)
+# lstm_1 = Bidirectional(LSTM(units=32, dropout=0.2, return_sequences=True))(embedded_sequences)
+# lstm_last = Bidirectional(LSTM(units=32, dropout=0.2))(lstm_1)
+gru_1 = GRU(32)(embedded_sequences)
+drop = Dropout(0.2)(gru_1)
+output = Dense(5,activation='softmax')(drop)
 
 model = Model(sequence_input, output)
-model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['acc'])
+model.compile(loss='categorical_crossentropy', optimizer=Adam(1e-4), metrics=['acc'])
 
-model.load_weights('model_lstm.hdf5')
+model.load_weights('model_gru.hdf5')
 print("Simplified LSTM neural network")
 model.summary()
-cp=ModelCheckpoint('model_lstm.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=3, batch_size=32,callbacks=[cp])
+cp=ModelCheckpoint('model_gru.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
+history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=32,callbacks=[cp])
