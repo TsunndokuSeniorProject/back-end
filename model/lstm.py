@@ -12,7 +12,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 import pandas as pd
 import random
-
+from file_reader import file_reader
 
 def clean_str(string):
     string = re.sub(r"\\", "", string)
@@ -135,4 +135,18 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['
 print("Simplified LSTM neural network")
 model.summary()
 cp=ModelCheckpoint('model_lstm.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=128,callbacks=[cp])
+# history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=128,callbacks=[cp])
+
+
+test_set = []
+test_direc = "C:/Users/USER/Desktop/574-902.txt"
+
+test_set, test_labels = file_reader().read_v2(path=test_direc)
+
+test_sequences = tokenizer.texts_to_sequences(test_set)
+test_data = pad_sequences(test_sequences, maxlen=MAX_SEQUENCE_LENGTH)
+test_labels = to_categorical(np.asarray(test_labels))
+
+res = model.evaluate(test_data, test_labels)
+print(model.metrics_names)
+print(res)

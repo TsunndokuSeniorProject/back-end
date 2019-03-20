@@ -1,27 +1,3 @@
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in
-
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
-
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-
-import os
-print(os.listdir("../input"))
-
-# Any results you write to the current directory are saved as output.
-# This Python 3 environment comes with many helpful analytics libraries installed
-# It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
-# For example, here's several helpful packages to load in
-
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-
-import os
-
-# Any results you write to the current directory are saved as output.
 from keras.optimizers import Adam
 from keras.layers import LSTM, Embedding, Dense, Input, Bidirectional, GRU, Conv1D, MaxPooling1D, Flatten
 from keras import Model
@@ -34,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 import re
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
-
+from file_reader import file_reader
 
 def clean_str(string):
     string = re.sub(r"\\", "", string)
@@ -51,7 +27,15 @@ VALIDATION_SPLIT = 0.3
 texts = []
 labels = []
 sentiment = 0
-with open("../input/movie_review.csv") as csvfile:
+# with open("../input/movie_review.csv") as csvfile:
+#     reader = csv.DictReader(csvfile)
+#     for row in reader:
+#       texts.append(list(row.values())[4])
+#       if list(row.values())[5] == 'neg':
+#           labels.append(0)
+#       else:
+#           labels.append(1)
+with open("C:/Users/USER/Downloads/movie-review/movie_review.csv") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
       texts.append(list(row.values())[4])
@@ -59,7 +43,6 @@ with open("../input/movie_review.csv") as csvfile:
           labels.append(0)
       else:
           labels.append(1)
-
 
 tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts)
@@ -128,4 +111,25 @@ model.compile(loss='binary_crossentropy', optimizer=Adam(0.001), metrics=['acc']
 print("Simplified LSTM neural network")
 model.summary()
 cp=ModelCheckpoint('model_lstm_movie2.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=32,callbacks=[cp])
+# history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=32,callbacks=[cp])
+
+test_set = []
+test_direc = "C:/Users/USER/Desktop/574-902.txt"
+
+test_set, test_labels = file_reader().read_v2(path=test_direc)
+
+count = 0
+for l in test_labels:
+    if l==-1:
+        test_labels[count] = 0
+    count += 1
+
+test_sequences = tokenizer.texts_to_sequences(test_set)
+test_data = pad_sequences(test_sequences, maxlen=MAX_SEQUENCE_LENGTH)
+test_labels = to_categorical(np.asarray(test_labels))
+
+
+res = model.evaluate(test_data, test_labels)
+
+print(model.metrics_names)
+print(res)
