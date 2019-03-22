@@ -26,6 +26,9 @@ with open("C:/Users/USER/Downloads/movie-review/movie_review.csv") as csvfile:
       else:
           labels.append(1)
 
+
+
+
 # skip = 0
 # for sent in data:
 #     if skip == 0:

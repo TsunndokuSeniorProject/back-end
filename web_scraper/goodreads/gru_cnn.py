@@ -111,25 +111,25 @@ model.compile(loss='binary_crossentropy', optimizer=Adam(0.001), metrics=['acc']
 print("Simplified LSTM neural network")
 model.summary()
 cp=ModelCheckpoint('model_lstm_movie2.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-# history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=32,callbacks=[cp])
+history=model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=32,callbacks=[cp])
 
-test_set = []
-test_direc = "C:/Users/USER/Desktop/574-902.txt"
+# test_set = []
+# test_direc = "C:/Users/USER/Desktop/574-902.txt"
 
-test_set, test_labels = file_reader().read_v2(path=test_direc)
+# test_set, test_labels = file_reader().read_v2(path=test_direc)
 
-count = 0
-for l in test_labels:
-    if l==-1:
-        test_labels[count] = 0
-    count += 1
+# count = 0
+# for l in test_labels:
+#     if l==-1:
+#         test_labels[count] = 0
+#     count += 1
 
-test_sequences = tokenizer.texts_to_sequences(test_set)
-test_data = pad_sequences(test_sequences, maxlen=MAX_SEQUENCE_LENGTH)
-test_labels = to_categorical(np.asarray(test_labels))
+# test_sequences = tokenizer.texts_to_sequences(test_set)
+# test_data = pad_sequences(test_sequences, maxlen=MAX_SEQUENCE_LENGTH)
+# test_labels = to_categorical(np.asarray(test_labels))
 
 
-res = model.evaluate(test_data, test_labels)
+# res = model.evaluate(test_data, test_labels)
 
-print(model.metrics_names)
-print(res)
+# print(model.metrics_names)
+# print(res)
