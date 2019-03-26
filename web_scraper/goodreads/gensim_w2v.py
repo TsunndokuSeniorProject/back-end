@@ -7,9 +7,12 @@ train_set = []
 train_direc = "C:/Users/USER/Downloads/10000train.txt"
 
 train_set, train_labels = file_reader().read(path=train_direc)
+processed = []
+for sentence in train_set:
+    processed.append(simple_preprocess(sentence))
 
-processed = simple_preprocess(train_set)
+model = Word2Vec(processed)
 
-model = Word2Vec(sentences=train_set)
+model.train(processed, total_examples=len(processed), epochs=10)
 
-model.train(train_set, total_examples=model.corpus_count, epochs=5)
+print(model.wv.most_similar(positive='narrative'))
