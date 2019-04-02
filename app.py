@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request
 from model.model import Model
-from model.subjectivity_model import SVM_subjectivity
-from model.word_feature import word_feature, sentence_selector
-import model.imitation_of_oms as oms
+from keras.optimizers import Adam, RMSprop
+from model.lstm import lstm
+from keras.backend import clear_session
+import model.text_processor as text_processor
 import web_scraper.goodreads.scraper as scraper
 from datetime import datetime
 import time
@@ -13,6 +14,8 @@ import nltk
 import re
 import json
 import pymongo
+import pandas as pd
+import numpy as np
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
@@ -106,23 +109,17 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = ""
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
-            word_processor = word_feature()
-            word_feature_list, word_map, all_reviews_sentence = word_processor.create_word_feature_test_set(text)
-            selector = sentence_selector()
-            svm = SVM_subjectivity()
-            svm.loadModelState('model/state/subjectivity_model_state.sav')
-            subjectivity_word = svm.test(word_feature_list,word_map)
+            
+            
+            sentences_list = text_processor.split_into_sentences(text)
+            clear_session()
+            result = np.asarray(polarity_lstm.predict(["i love sherlock"]))
+            print(type(result))
+            print(result)
+            # result = pd.DataFrame({"sentences": sentences_list, "polarity": result})
 
-            filtered_sentence = selector.filter(all_reviews_sentence, subjectivity_word)
-            filtered_sentence = ". ".join(filtered_sentence)
-            filtered_sentence = filtered_sentence.replace("\n"," ").replace(".",". ")
-            filtered_sentence = re.sub(r'[^\x00-\x7F]+','', filtered_sentence)
-            a = oms.preProcessing(filtered_sentence)
-            b = oms.tokenizeReviews(a)
-            c = oms.posTagging(b)
-            d = oms.aspectExtraction(c)
-            result = oms.identifyOpinionWords(c, d)
-            book_reviews['sentiment'] = result
+            # book_reviews['sentiment'] = result.to_dict("records")
+            # book_reviews['sentiment'] = sentences_list
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
@@ -160,8 +157,9 @@ def get_all_books():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
-    
-    
+    polarity_lstm = lstm()
+    polarity_lstm.initialize_model(num_class=3,glove_direc="./model/vectors/glove.6B.100d.txt")
+    polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 
