@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request
 from model.model import Model
 from keras.optimizers import Adam, RMSprop
 from model.lstm import lstm
-from keras.backend import clear_session
 import model.text_processor as text_processor
 import web_scraper.goodreads.scraper as scraper
 from datetime import datetime
@@ -16,6 +15,7 @@ import json
 import pymongo
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
@@ -112,14 +112,17 @@ def get_review_by_isbn_with_predict_result(isbn):
             
             
             sentences_list = text_processor.split_into_sentences(text)
-            clear_session()
-            result = np.asarray(polarity_lstm.predict(["i love sherlock"]))
+            global graph
+            with graph.as_default():
+                result = np.asarray(polarity_lstm.predict(["i love sherlock"]))
             print(type(result))
             print(result)
-            # result = pd.DataFrame({"sentences": sentences_list, "polarity": result})
+            print(np.amax(result))
+            
+            result = pd.DataFrame({"sentences": sentences_list, "polarity": np.amax(result)})
 
-            # book_reviews['sentiment'] = result.to_dict("records")
-            # book_reviews['sentiment'] = sentences_list
+            book_reviews['sentiment'] = result.to_dict("records")
+            book_reviews['sentiment'] = sentences_list
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
@@ -158,8 +161,13 @@ def get_all_books():
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
     polarity_lstm = lstm()
+    
+    # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
+    graph = tf.get_default_graph()
+
     polarity_lstm.initialize_model(num_class=3,glove_direc="./model/vectors/glove.6B.100d.txt")
     polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
+    polarity_lstm.load_weights('./model/model_lstm.hdf5')
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
 
