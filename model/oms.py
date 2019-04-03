@@ -4,6 +4,8 @@ import re
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.corpus import sentiwordnet
+import text_processor
+
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('sentiwordnet')
@@ -17,6 +19,7 @@ class opinion_mining_system:
     
     def operate_aspect_extraction(self, full_text_reviews):
         sentence_list = self.split_sentence(full_text_reviews)
+        sentence_list = text_processor.filter_english(sentence_list)
         sentence_pos_list = []
         for sentence in sentence_list:
             sentence_pos_list.append(nltk.pos_tag(nltk.word_tokenize(sentence)))
