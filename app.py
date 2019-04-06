@@ -16,8 +16,7 @@ import pymongo
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+
 
 app = Flask(__name__)
 
@@ -104,7 +103,7 @@ def find_max(np_list):
     for np_item in np_list:
         result.append(np.argmax(np_item))
     return result
-@app.route("/api/book/isbn2/<string:isbn>", methods=['GET'])
+@app.route("/api/book/isbn/interpret/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_with_predict_result(isbn):
     
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
@@ -115,6 +114,8 @@ def get_review_by_isbn_with_predict_result(isbn):
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
             sentences_list = text_processor.split_into_sentences(text)
+            sentences_list = text_processor.filter_english(sentences_list)
+            
             global graph
             with graph.as_default():
                 result = np.asarray(polarity_lstm.predict(sentences_list))

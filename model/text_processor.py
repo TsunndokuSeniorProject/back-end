@@ -2,15 +2,24 @@
 import re
 import nltk 
 import spacy
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('sentiwordnet')
 
 def filter_english(sentence_list):
     filtered_sentence_list = []
     for sentence in sentence_list:
-        if re.search(r'[^\x00-\x7F]+', sentence) == None:
-            filtered_sentence_list.append(sentence)
+        # if re.search(r'[^\u0000-\u007F]+', sentence) == None:
+        sentence = re.sub(r'[^\u0041-\u005A | ^\u0061-\u007A]', " ", sentence)
+        sentence = re.sub(r'\s+', " ", sentence)
+
+        if sentence != " ":
+            filtered_sentence_list.append(sentence.strip())
     return filtered_sentence_list
 
-def split_into_sentences(text):
+def split_into_sentences_regex(text):
     alphabets= "([A-Za-z])"
     prefixes = "(Mr|St|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|Mt)[.]"
     suffixes = "(Inc|Ltd|Jr|Sr|Co)"
@@ -63,39 +72,11 @@ def split_into_sentences(text):
     print("split sentences {}".format(len(sentences)))
     return sentences
 
-def opinion_sentence_filter(splited_review):
-    review_with_pos = []
-    for sentence in splited_review:
-        ufo_lang = re.search(r'[^\x00-\x7F]+', sentence)
-        if ufo_lang is None:
-            sentence_only_pos = ""
-            sentence_pos = nltk.pos_tag(nltk.word_tokenize(sentence))
-            for sp in sentence_pos:
-                sentence_only_pos += str(sp[1])+" "
-            review_with_pos.append([sentence,sentence_only_pos.strip()])
-    opinion_sentences = []
-    un_opinion = []
-    for review in review_with_pos:
-        if "JJ" in review[1] or "RB" in review[1]:
-            opinion_sentences.append(review[0])
-        else:
-            un_opinion.append(review[0])
-    print("filter sentences {}".format(len(opinion_sentences)))
-    print("filter out sentences {}".format(len(un_opinion)))
-    return opinion_sentences
+def split_into_sentences(text):
+    sentence_tokenize = nltk.tokenize.punkt.PunktSentenceTokenizer().tokenize(text)
+    return sentence_tokenize
 
-def split_phrase(text):
-    temp = []
-    if "," in text:
-        phrases = text.split(",")
-        num_phrase = len(phrases)
-        for i in range(0, num_phrase):
-            temp.append(str(",".join(phrases[:i])) + "\n") 
-        temp.append(text + "\n")
-        temp.reverse()
-    else:
-        temp.append(text)
-    return "".join(temp)
+
 if __name__ == "__main__":
 
     # source_file = "../sentences_filtered.txt"
@@ -108,9 +89,9 @@ if __name__ == "__main__":
     # fp = open("../new_sentences_filtered.txt", "w+", encoding="utf-8")
     # fp.write(new_content)
     # fp.close()
-    with open("data.txt", "r", encoding="utf-8") as fp:
+    with open("un_english_text.txt", "r", encoding="utf-8") as fp:
         data = fp.readlines()
 
         fp.close()
 
-    print(filter_english(data))
+    print("\n".join(filter_english(data)))
