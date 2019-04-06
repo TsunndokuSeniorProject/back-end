@@ -10,11 +10,11 @@ import re
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 import pandas as pd
-import random 
+import random
+import tensorflow as tf
 import sys
 from sklearn.externals import joblib
-sys.path.append("../")
-from web_scraper.goodreads.file_reader import file_reader
+from file_reader import file_reader
 
 class lstm:
     def __init__(self):

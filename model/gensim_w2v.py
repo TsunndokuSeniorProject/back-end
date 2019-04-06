@@ -3,7 +3,7 @@ from gensim.test.utils import common_texts
 from gensim.utils import simple_preprocess, deaccent
 import sys
 sys.path.append("../")
-from web_scraper.goodreads.file_reader import file_reader
+from file_reader import file_reader
 from oms import opinion_mining_system
 
 train_set = []
@@ -13,12 +13,8 @@ with open(train_direc, 'r', encoding='utf8') as f:
     data = f.readlines()
 f.close()
 
-
-
 st = "This is a cat, <imp_character> loves him very much."
 print(simple_preprocess(st))
-
-for aspect in aspects:
 
 processed = []
 for sentence in data:
@@ -27,7 +23,6 @@ for sentence in data:
 model = Word2Vec(processed)
 
 model.train(processed, total_examples=len(processed), epochs=5)
-
 
 # write = ''
 # for word in model.wv.index2word:
@@ -42,17 +37,27 @@ model.train(processed, total_examples=len(processed), epochs=5)
 test_set = []
 test_direc = "C:/Users/USER/Downloads/test.txt"
 
+test_set, test_label = file_reader().read(test_direc)
+
 aspects = opinion_mining_system().operate_aspect_extraction(full_text_reviews=" ".join(data))
 
 print(aspects)
 
-for aspect in aspects[0]:
-    if model.similarity('story', aspect) > 0.7:
-        story_sim = model.similarity('story', aspect)
-    if model.similarity('character', aspect) > 0.7:
-        char_sim = model.similarity('character', aspect)
-    if model.similarity('writing', aspect) > 0.7:
-        writing_sim = model.similarity('writing', aspect)
+for sen in test_set:
+    for aspect in aspects[0]:
+        if aspect in sen:
+            try:
+                if model.similarity('story', aspect.lower()) >= 0.7:
+                    story_sim = model.similarity('story', aspect)
+                if model.similarity('character', aspect) >= 0.7:
+                    char_sim = model.similarity('character', aspect)
+                if model.similarity('writing', aspect) >= 0.7:
+                    writing_sim = model.similarity('writing', aspect)
+                aspect_sim = max(story_sim, char_sim, writing_sim)
+            except KeyError:
+                print("no word in this place")
+
+
 # test_set, test_label = file_reader().read(path=test_direc)
 
 # print(model.similarity('story', 'plot'))
