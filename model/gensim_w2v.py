@@ -42,20 +42,23 @@ test_set, test_label = file_reader().read(test_direc)
 aspects = opinion_mining_system().operate_aspect_extraction(full_text_reviews=" ".join(data))
 
 print(aspects)
-
+res = []
 for sen in test_set:
     for aspect in aspects[0]:
         if aspect in sen:
+            a = dict()
             try:
-                if model.similarity('story', aspect.lower()) >= 0.7:
-                    story_sim = model.similarity('story', aspect)
-                if model.similarity('character', aspect) >= 0.7:
-                    char_sim = model.similarity('character', aspect)
-                if model.similarity('writing', aspect) >= 0.7:
-                    writing_sim = model.similarity('writing', aspect)
-                aspect_sim = max(story_sim, char_sim, writing_sim)
+                a['story_sim'] = model.similarity('story', aspect)
+                a['char_sim'] = model.similarity('character', aspect)
+                a['writing_sim'] = model.similarity('writing', aspect)
+                max_sim = max(a.values())
+                for asp, sim in a.items():
+                    if max_sim == sim:
+                        res.append(asp)
             except KeyError:
-                print("no word in this place")
+                print("no word in this place, switching to sentence level model")
+                res.append(-99)
+                
 
 
 # test_set, test_label = file_reader().read(path=test_direc)
