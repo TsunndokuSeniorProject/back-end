@@ -54,12 +54,27 @@ for sen in test_set:
                 max_sim = max(a.values())
                 for asp, sim in a.items():
                     if max_sim == sim:
-                        res.append(asp)
+                        if asp == 'story_sim':
+                            res.append(1)
+                        elif asp == 'writing_sim':
+                            res.append(2)
+                        elif asp == 'char_sim':
+                            res.append(3)
             except KeyError:
                 print("no word in this place, switching to sentence level model")
-                res.append(-99)
-                
+                res.append(-99)           
 
+correct, total = 0, 0
+for pred, label in zip(res, test_label):
+    if pred == -99:
+        continue
+    else:
+        if pred == label:
+            correct += 1
+        total += 1
+
+print(correct/total)
+    
 
 # test_set, test_label = file_reader().read(path=test_direc)
 
