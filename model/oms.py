@@ -41,10 +41,10 @@ class opinion_mining_system:
         # return outputAspect
         # return 0
 
-    def operate_aspect_extraction(self, full_text_reviews):
-        sentence_list = text_processor.filter_english(text_processor.split_into_sentences(full_text_reviews))
+    def operate_aspect_extraction(self, sentence_list):
+        # sentence_list = text_processor.filter_english(text_processor.split_into_sentences(full_text_reviews))
         sentence_pos_list = []
-        print(len(sentence_list))
+        # print(len(sentence_list))
         for sentence in sentence_list:
             tagged_sen = nltk.pos_tag(nltk.word_tokenize(sentence))
             asp_sen = []
