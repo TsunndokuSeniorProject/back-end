@@ -110,20 +110,21 @@ for sen, aspect in zip(test_set, aspects):
 #                 except KeyError:
 #                     res.append(-99)
 
-
+print(res)
 
 correct, total = 0, 0
 
 for sen, pred, label in zip(test_set, res, test_label):
-    print("Sentence : {} predict : {} , actual : {}".format(sen, pred, label))
-    if pred is None:
-        continue
-    if pred == -99:
+    if not pred:
         continue
     else:
-        if pred == label:
-            correct += 1
-        total += 1
+        print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
+        if pred[0] == -99:
+            continue
+        else:
+            if pred[0] == label:
+                correct += 1
+            total += 1
 
 print("Threshold: " + str(threshold))
 print("Acc: " + str(correct/total))
@@ -134,22 +135,18 @@ correct, total = 0, 0
 
 for sen, pred, label in zip(test_set, res, test_label):
     if label != 2:
-        if pred is None:
-            continue
-        print("Sentence : {} predict : {} , actual : {}".format(sen, pred, label))
-        if pred == -99:
+        if not pred:
             continue
         else:
-            if pred == label:
-                correct += 1
-            total += 1
+            print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
+            if pred[0] == -99:
+                continue
+            else:
+                if pred[0] == label:
+                    correct += 1
+                total += 1
 
 print("Threshold: " + str(threshold))
 print("Acc: " + str(correct/total))
 print("Correct: " + str(correct))
 print("Total: " + str(total))
-
-    # test_set, test_label = file_reader().read(path=test_direc)
-
-    # print(model.similarity('story', 'plot'))
-    # threshold += 0.05
