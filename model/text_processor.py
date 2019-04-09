@@ -2,6 +2,10 @@
 import re
 import nltk 
 import spacy
+import os
+import json
+import spacy
+nlp = spacy.load('en_core_web_sm')
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
@@ -16,8 +20,17 @@ def filter_english(sentence_list):
         sentence = re.sub(r'\s+', " ", sentence)
 
         if sentence != " ":
-            filtered_sentence_list.append(sentence.strip())
+            if "spoiler)[" not in sentence and "<Replace>" not in sentence:
+                filtered_sentence_list.append(tag_character(sentence))
     return filtered_sentence_list
+
+
+def tag_character(sentence):
+    doc = nlp(sentence)
+    for entity in doc.ents:
+        if entity.label_ is "PERSON":
+            sentence = sentence.replace(entity.text, "imp_char")
+    return sentence.strip()
 
 def split_into_sentences_regex(text):
     alphabets= "([A-Za-z])"
@@ -89,9 +102,24 @@ if __name__ == "__main__":
     # fp = open("../new_sentences_filtered.txt", "w+", encoding="utf-8")
     # fp.write(new_content)
     # fp.close()
-    with open("un_english_text.txt", "r", encoding="utf-8") as fp:
-        data = fp.readlines()
+    text = ""
+    genres = os.listdir("../web_scraper/goodreads/novel/")
+    for genre in genres:
+        if genre != ".DS_Store":
+            novels = os.listdir("../web_scraper/goodreads/novel/{}/".format(genre))
+            for novel in novels:
+                if novel != ".DS_Store":
+                    with open("../web_scraper/goodreads/novel/{}/{}".format(genre, novel), "r", encoding="utf-8") as fp:
+                        data = json.load(fp)
+                    for review in data["Reviews"]:
+                        text += review["Review"]+" "
 
-        fp.close()
+    # with open("un_english_text.txt", "r", encoding="utf-8") as fp:
+    #     data = fp.readlines()
 
-    print("\n".join(filter_english(data)))
+    #     fp.close()
+
+    processed_text = "\n".join(filter_english(split_into_sentences_regex(text)))
+    
+    with open("processed_text.txt", "w+", encoding="utf-8") as fp:
+        fp.write(processed_text)

@@ -7,32 +7,55 @@ all_reviews = ""
 genres = os.listdir("web_scraper/goodreads/novel/")
 for genre in genres:
     books = os.listdir("web_scraper/goodreads/novel/{}/".format(genre))
+    print(genre)
     for book in books:
+        # print(book)
         with open("web_scraper/goodreads/novel/{}/{}".format(genre, book), "r") as fp:
             data = json.load(fp)
+        book_name = data["Name"]
         for review in data["Reviews"]:
-            all_reviews += review["Review"] + " "
-        
+            all_reviews += review["Review"].replace(book_name, "book_name") + " "
+    #         break
+    #     break
+    # break
 
-sentences_list = tp.opinion_sentence_filter(tp.split_into_sentences(all_reviews))
+    
+#     all_reviews += " {} is good.".format(genre)
 
-sentences_list_filtered = []
+# genres = ["classics", "romance", "young" "adult", "mystery", "horror", "historical", "humor", "nonfiction", "thriller", "fiction", "crime", "science fiction", "fantasy"]        
+
+# for genre in genres:
+#     if " {} is good.".format(genre) in all_reviews:
+#         print("{}, True".format(genre))
+sentences_list = tp.filter_english(tp.split_into_sentences_regex(all_reviews))
+
+sentences_list_filtered = sentences_list
+
 print("done filter")
-for sentence in sentences_list:
-    doc = nlp(sentence)
-    for entity in doc.ents:
-        if entity.label_ is "PERSON":
-            sentence = sentence.replace(entity.text, "<Character>")
-            # print(entity.text, entity.label_)
-        # elif entity.label_ is "ORG":
-        #     sentence = sentence.replace(entity.text, "<Organization>")
-    if "spoiler)[" not in sentence and "<Replace>" not in sentence:
-        sentences_list_filtered.append(sentence)
+# for genre in genres:
+#     if " {} is good.".format(genre) in all_reviews:
+#         print("{}, True".format(genre))
+# for sentence in sentences_list:
 
-print("done replace")
+#     doc = nlp(sentence)
+
+#     for entity in doc.ents:
+#         if entity.label_ is "PERSON":
+#             sentence = sentence.replace(entity.text, "imp_char")
+#             # print(entity.text, entity.label_)
+#         # elif entity.label_ is "ORG":
+#         #     sentence = sentence.replace(entity.text, "<Organization>")
+#     if "spoiler)[" not in sentence and "<Replace>" not in sentence:
+#         sentences_list_filtered.append(sentence)
+
+
+# print("done replace")
+# for genre in genres:
+#     if " {} is good.".format(genre) in all_reviews:
+#         print("{}, True".format(genre))
 sentences_list_filtered = "\n".join(sentences_list_filtered)
 
-
-
-with open("sentences_filtered.txt", "w", encoding="utf-8") as fp:
+# print(sentences_list_filtered)
+# print(len(sentences_list_filtered))
+with open("sentences_filtered.txt", "w+", encoding="utf-8") as fp:
     fp.write(sentences_list_filtered)
