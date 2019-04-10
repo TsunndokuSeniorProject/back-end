@@ -14,7 +14,7 @@ import random
 import tensorflow as tf
 import sys
 from sklearn.externals import joblib
-from file_reader import file_reader
+from model.file_reader import file_reader
 
 class lstm:
     def __init__(self):
