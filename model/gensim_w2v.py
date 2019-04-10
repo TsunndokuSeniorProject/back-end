@@ -16,7 +16,7 @@ with open(train_direc, 'r', encoding='utf-8') as f:
     data = f.readlines()
 f.close()
 
-threshold = 0.70
+threshold = 0.50
 
 
 # embeddings_index = {}
@@ -28,21 +28,30 @@ threshold = 0.70
 #     embeddings_index[word] = coefs
 # f.close()
 
-processed = []
-for sentence in data:
-    if len(sentence) > 1:
-        processed.append(simple_preprocess(sentence))
+# processed = []
+# for sentence in data:
+#     if len(sentence) > 1:
+#         processed.append(simple_preprocess(sentence))
 
-model = Word2Vec(processed)
+# model = Word2Vec(processed)
 
-print("start training")
-model.train(processed, total_examples=len(processed), epochs=10)
-print("training finished")
+# print("start training")
+# model.train(processed, total_examples=len(processed), epochs=10)
+# print("training finished")
 
-print(model.wv.most_similar(positive='story'))
-print(model.wv.most_similar(positive='character'))
-print(model.wv.most_similar(positive='writing'))
-print(model.wv.most_similar(positive='imp_char'))
+# model.save("gensim_model.sav")
+model = Word2Vec.load('gensim_model.sav')
+
+# uncomment to write to file
+# writeout = ""
+# for word, vector in zip(model.wv.index2word, model.wv.vectors):
+#     writeout = writeout + word + " " + str(vector) + "\n"
+
+# with open('gensim_vec.txt', 'w+', encoding='utf8') as fp:
+#     fp.write(writeout)
+# fp.close()
+
+
 test_set = []
 test_direc = "C:/Users/USER/Downloads/test.txt"
 
@@ -52,38 +61,42 @@ aspects = opinion_mining_system().operate_aspect_extraction(test_set)
 
 print(aspects)
 # print(test_label)
-# while threshold <= 0.9:
-res = []
-print("test_set length: {}".format(len(test_set)))
-print("aspect lenght: {}".format(len(aspects)))
-for sen, aspect in zip(test_set, aspects):
-    asp_in_sen = []
-    for ele in aspect:
-        if ele.lower() in sen.lower():
-            a = dict()
-            try:
-                a['story_sim'] = model.similarity('story', ele.lower())
-                a['char_sim'] = model.similarity('imp_char', ele.lower())
-                if model.similarity('character', ele.lower()) > a['char_sim']:
-                    a['char_sim'] = model.similarity('character', ele.lower())
-                a['writing_sim'] = model.similarity('writing', ele.lower())
-                max_sim = max(a.values())
-                
-                if max_sim < threshold:
-                    asp_in_sen.append(-99)
-                else:
-                    # print(ele.lower())
-                    for asp, sim in a.items():
-                        if max_sim == sim:
-                            if asp == 'story_sim':
-                                asp_in_sen.append(1)
-                            elif asp == 'writing_sim':
-                                asp_in_sen.append(2)
-                            elif asp == 'char_sim':
-                                asp_in_sen.append(3)
-            except KeyError:
-                asp_in_sen.append(-99)
-    res.append(asp_in_sen)
+while threshold <= 0.9:
+    res = []
+    print("test_set length: {}".format(len(test_set)))
+    print("aspect lenght: {}".format(len(aspects)))
+    for sen, aspect in zip(test_set, aspects):
+        asp_in_sen = []
+        for ele in aspect:
+            if ele.lower() in sen.lower():
+                a = dict()
+                try:
+                    a['story_sim'] = model.similarity('story', ele.lower())
+                    a['char_sim'] = model.similarity('impchar', ele.lower())
+                    if model.similarity('character', ele.lower()) > a['char_sim']:
+                        a['char_sim'] = model.similarity('character', ele.lower())
+                    a['writing_sim'] = model.similarity('writing', ele.lower())
+                    # if model.similarity('novel', ele.lower()) > a['writing_sim']:
+                    #     a['writing_sim'] = model.similarity('novel', ele.lower())
+                    max_sim = max(a.values())
+                    
+                    if max_sim < threshold:
+                        a = 0
+                        # asp_in_sen.append(-99)
+                    else:
+                        # print(ele.lower())
+                        for asp, sim in a.items():
+                            if max_sim == sim:
+                                if asp == 'story_sim':
+                                    asp_in_sen.append(1)
+                                elif asp == 'writing_sim':
+                                    asp_in_sen.append(2)
+                                elif asp == 'char_sim':
+                                    asp_in_sen.append(3)
+                except KeyError:
+                    a = 0
+                    # asp_in_sen.append(-99)
+        res.append(asp_in_sen)
     
 # while threshold <= 1:
 #     res = []
@@ -110,35 +123,14 @@ for sen, aspect in zip(test_set, aspects):
 #                 except KeyError:
 #                     res.append(-99)
 
-print(res)
 
-correct, total = 0, 0
+    correct, total = 0, 0
 
-for sen, pred, label in zip(test_set, res, test_label):
-    if not pred:
-        continue
-    else:
-        print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
-        if pred[0] == -99:
-            continue
-        else:
-            if pred[0] == label:
-                correct += 1
-            total += 1
-
-print("Threshold: " + str(threshold))
-print("Acc: " + str(correct/total))
-print("Correct: " + str(correct))
-print("Total: " + str(total))
-
-correct, total = 0, 0
-
-for sen, pred, label in zip(test_set, res, test_label):
-    if label != 2:
+    for sen, pred, label in zip(test_set, res, test_label):
         if not pred:
             continue
         else:
-            print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
+            # print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
             if pred[0] == -99:
                 continue
             else:
@@ -146,7 +138,28 @@ for sen, pred, label in zip(test_set, res, test_label):
                     correct += 1
                 total += 1
 
-print("Threshold: " + str(threshold))
-print("Acc: " + str(correct/total))
-print("Correct: " + str(correct))
-print("Total: " + str(total))
+    print("Threshold: " + str(threshold))
+    print("Acc: " + str(correct/total))
+    print("Correct: " + str(correct))
+    print("Total: " + str(total))
+
+    correct, total = 0, 0
+
+    for sen, pred, label in zip(test_set, res, test_label):
+        if label != 2:
+            if not pred:
+                continue
+            else:
+                # print("Sentence : {} predict : {} , actual : {}".format(sen, pred[0], label))
+                if pred[0] == -99:
+                    continue
+                else:
+                    if pred[0] == label:
+                        correct += 1
+                    total += 1
+
+    print("Threshold: " + str(threshold))
+    print("Acc: " + str(correct/total))
+    print("Correct: " + str(correct))
+    print("Total: " + str(total))
+    threshold += 0.05
