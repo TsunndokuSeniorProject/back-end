@@ -8,8 +8,9 @@ class file_reader:
             for line in fp.readlines():
                 if re.search("\,\s[\-]?\d$", line) and re.search(r'[^\x00-\x7F]+', line) == None:
                     sentence_elements = line.split(",")
-                    data.append(",".join(sentence_elements[0: -2]))
-                    label.append(int(sentence_elements[-2].replace("\n", "").strip()))
+                    if int(sentence_elements[-2].replace("\n", "").strip()) in [1, 2, 3]:
+                        data.append(",".join(sentence_elements[0: -2]))
+                        label.append(int(sentence_elements[-2].replace("\n", "").strip()))
 
         return data, label
     
