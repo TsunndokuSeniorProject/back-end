@@ -40,20 +40,19 @@ class lstm:
                 train_labels.append(2)
             else:
                 train_labels.append(label)
-        
         self.tokenizer.fit_on_texts(train_set)
+        joblib.dump(self.tokenizer, './review_tokenizer.sav')
         
         train_sequences = self.tokenizer.texts_to_sequences(train_set)
         # train_labels = to_categorical(np.asarray(train_labels))
-        print(train_sequences)
-        print(self.tokenizer.index_word)
+        
         smt = Word2Vec.load('gensim_model.sav')
-        print(smt.wv)
+        
         word_index = self.tokenizer.word_index
         print('Number of Unique Tokens', len(word_index))
 
         data = pad_sequences(train_sequences, maxlen=self.MAX_SEQUENCE_LENGTH)
-        print(train_labels)
+        
         labels = to_categorical(np.asarray(train_labels))
         print('Shape of Data Tensor:', data.shape)
         print('Shape of Label Tensor:', labels.shape)
@@ -74,40 +73,41 @@ class lstm:
         history = self.model.fit(data, labels, validation_split=self.VALIDATION_SPLIT, epochs=epoch, batch_size=32,callbacks=[cp])
 
 
-    def initialize_model(self, num_class, glove_direc=None):
+    def initialize_model(self, num_class, weight_direc=None):
         gensim_model = Word2Vec.load('gensim_model.sav')
         
         self.tokenizer = joblib.load('review_tokenizer.sav')
         word_index = self.tokenizer.word_index
-        # embeddings_index = {}
-        # if glove_direc is not None:
-        #     f = open(glove_direc,encoding='utf8')
-        #     for line in f:
-        #         values = line.split()
-        #         word = values[0]
-        #         coefs = np.asarray(values[1:], dtype='float32')
-        #         embeddings_index[word] = coefs
-        #     f.close()
+        embeddings_index = {}
+        if weight_direc is not None:
+            f = open(weight_direc,encoding='utf8')
+            for line in f:
+                
+                values = line.split()
+                word = values[0]
+                coefs = np.asarray(values[1:], dtype='float32')
+                embeddings_index[word] = coefs
+            f.close()
 
-        #     print('Total %s word vectors in Glove 6B 100d.' % len(embeddings_index))
+            print('Total %s word vectors in provided weight direc.' % len(embeddings_index))
 
-        #     embedding_matrix = np.random.random((len(word_index) + 1, self.EMBEDDING_DIM))
-        #     for word, i in word_index.items():
-        #         embedding_vector = embeddings_index.get(word)
-        #         if embedding_vector is not None:
-        #             # words not found in embedding index will be all-zeros.
-        #             embedding_matrix[i] = embedding_vector
+            embedding_matrix = np.random.random((len(word_index) + 1, self.EMBEDDING_DIM))
+            for word, i in word_index.items():
+                embedding_vector = embeddings_index.get(word)
+                if embedding_vector is not None:
+                    # words not found in embedding index will be all-zeros.
+                    embedding_matrix[i] = embedding_vector
 
-        #     embeddings = Embedding(len(word_index) + 1,
-        #                             self.EMBEDDING_DIM,weights=[embedding_matrix],
-        #                             input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
+            embeddings = Embedding(len(word_index) + 1,
+                                    self.EMBEDDING_DIM,weights=[embedding_matrix],
+                                    input_length=self.MAX_SEQUENCE_LENGTH, trainable=False)
 
-        # else:
-        #     embeddings = Embedding(len(word_index) + 1, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
+        else:
+            embeddings = Embedding(len(word_index) + 1, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
 
         sequence_input = Input(shape=(self.MAX_SEQUENCE_LENGTH,), dtype='int32')
-        # embedded_sequences = embeddings(sequence_input)
-        embedded_sequences = gensim_model.wv.get_keras_embedding()(sequence_input)
+        embedded_sequences = embeddings(sequence_input)
+        # embedded_sequences = gensim_model.wv.get_keras_embedding()(sequence_input)
         lstm_1 = Bidirectional(GRU(units=64, dropout=0.2, return_sequences=True))(embedded_sequences)
         lstm_last = Bidirectional(GRU(units=64, dropout=0.2))(lstm_1)
         output = Dense(num_class, activation='softmax')(lstm_last)
@@ -154,8 +154,8 @@ class lstm:
 
 if __name__ == '__main__':
     lstm = lstm()
-    lstm.tokenize('C:/Users/USER/Downloads/neo_sentences_filtered.txt')
-    lstm.initialize_model(num_class=3)
+    lstm.tokenize('C:/Users/hpEnvy/Downloads/neo_sentences_filtered.txt')
+    lstm.initialize_model(num_class=3, weight_direc='gensim_vec.txt')
     lstm.compile_model(loss_function='categorical_crossentropy', optimizer=RMSprop(1e-4))
-    lstm.train('C:/Users/USER/Downloads/test.txt', epoch=10)
+    lstm.train('C:/Users/hpEnvy/Downloads/test.txt', epoch=13)
     # lstm.test("C:/Users/USER/Downloads/test.txt")
