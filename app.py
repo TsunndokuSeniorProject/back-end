@@ -113,6 +113,8 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = ""
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
+            print(book_reviews["Author"])
+            text = text_processor.replace_author(text, book_reviews["Author"])
             sentences_list = text_processor.split_into_sentences(text)
             sentences_list = text_processor.filter_english(sentences_list)
 
@@ -134,6 +136,8 @@ def get_review_by_id_with_predict_result(id):
         text = ""
         for review in book_reviews['Reviews']:
             text += review['Review'] + " "
+
+        text = text_processor.replace_author(text, book_reviews["Author"])
         sentences_list = text_processor.split_into_sentences(text)
         sentences_list = text_processor.filter_english(sentences_list)
 
