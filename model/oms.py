@@ -4,8 +4,8 @@ import re
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.corpus import sentiwordnet
-from file_reader import file_reader
-import text_processor
+from model.file_reader import file_reader
+import model.text_processor
 
 class opinion_mining_system:
     

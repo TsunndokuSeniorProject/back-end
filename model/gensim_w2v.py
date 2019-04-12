@@ -5,8 +5,8 @@ from nltk.corpus import stopwords
 import nltk
 import sys
 sys.path.append("../")
-from file_reader import file_reader
-from oms import opinion_mining_system
+from model.file_reader import file_reader
+from model.oms import opinion_mining_system
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -141,7 +141,7 @@ class gensim_w2v:
 
 
     def predict(self, input_text):
-        self.model = Word2Vec.load('gensim_model.sav')
+        self.model = Word2Vec.load('model/gensim_model.sav')
         pred_res = []
         aspects = opinion_mining_system().operate_aspect_extraction(input_text)
         for sen, aspect in zip(input_text, aspects):
