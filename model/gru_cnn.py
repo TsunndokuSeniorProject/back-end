@@ -1,4 +1,6 @@
 from keras.optimizers import Adam
+import nltk
+from nltk.corpus import stopwords
 from keras.layers import LSTM, Embedding, Dense, Input, Bidirectional, GRU, Conv1D, MaxPooling1D, Flatten
 from keras import Model
 from gensim.models.word2vec import Word2Vec
@@ -23,7 +25,7 @@ def clean_str(string):
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NB_WORDS = 20000
 EMBEDDING_DIM = 100
-VALIDATION_SPLIT = 0.2
+VALIDATION_SPLIT = 0.1
 tokenizer = Tokenizer(num_words=25000)
 
 train_direc = "C:/Users/USER/Downloads/test.txt"
@@ -71,33 +73,32 @@ print('Shape of Label Tensor:', labels.shape)
 # x_val = data[-nb_validation_samples:]
 # y_val = labels[-nb_validation_samples:]
 
-# embeddings_index = {}
-# f = open('/kaggle/input/embeddings/glove.840B.300d/glove.840B.300d.txt', 'utf-8')
-# for line in f:
-#     values = line.split()
-#     word = values[0]
-#     coefs = np.asarray(values[1:], dtype='float32')
-#     embeddings_index[word] = coefs
-# f.close()
+embeddings_index = {}
+f = open('./vectors/gensim_vec.txt' ,encoding='utf8')
+for line in f:
+    values = line.split()
+    word = values[0]
+    coefs = np.asarray(values[1:], dtype='float32')
+    embeddings_index[word] = coefs
+f.close()
 
-# print('Total %s word vectors in Glove 6B 100d.' % len(embeddings_index))
+print('Total %s word vectors in provided weight direc.' % len(embeddings_index))
 
-# embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
-# for word, i in word_index.items():
-#     embedding_vector = embeddings_index.get(word)
-#     if embedding_vector is not None:
-#         # words not found in embedding index will be all-zeros.
-#         embedding_matrix[i] = embedding_vector
+embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
+for word, i in word_index.items():
+    embedding_vector = embeddings_index.get(word)
+    if embedding_vector is not None:
+        # words not found in embedding index will be all-zeros.
+        embedding_matrix[i] = embedding_vector
 
-# embedding_layer = Embedding(len(word_index) + 1,
-#                             EMBEDDING_DIM,weights=[embedding_matrix],
-#                             input_length=MAX_SEQUENCE_LENGTH,trainable=True)
-gensim_model = Word2Vec.load('gensim_model.sav')
+embeddings = Embedding(len(word_index) + 1,
+                        EMBEDDING_DIM,weights=[embedding_matrix],
+                        input_length=MAX_SEQUENCE_LENGTH, trainable=False)
 
 sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-# embedded_sequences = embedding_layer(sequence_input)
+embedded_sequences = embeddings(sequence_input)
 # embedded_sequences = Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)(sequence_input)
-embedded_sequences = gensim_model.wv.get_keras_embedding()(sequence_input)
+# embedded_sequences = gensim_model.wv.get_keras_embedding()(sequence_input)
 # lstm_1 = Bidirectional(LSTM(units=32, dropout=0.2, return_sequences=True))(embedded_sequences)
 # lstm_last = Bidirectional(LSTM(units=32, dropout=0.2))(lstm_1)
 gru = GRU(128, dropout=0.2, return_sequences=True)(embedded_sequences)
@@ -112,12 +113,12 @@ dense = Dense(128, activation='relu')(flat)
 output = Dense(3,activation='softmax')(dense)
 
 model = Model(sequence_input, output)
-model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['acc'])
+model.compile(loss='categorical_crossentropy', optimizer=Adam(1e-4), metrics=['acc'])
 
 print("Simplified LSTM neural network")
 model.summary()
 cp=ModelCheckpoint('model_lstm_movie2.hdf5',monitor='val_acc',verbose=1,save_best_only=True)
-history=model.fit(data, labels, validation_split=VALIDATION_SPLIT, epochs=5, batch_size=32,callbacks=[cp])
+history=model.fit(data, labels, validation_split=VALIDATION_SPLIT, epochs=10, batch_size=32,callbacks=[cp])
 
 # test_set = []
 # test_direc = "C:/Users/USER/Desktop/574-902.txt"
