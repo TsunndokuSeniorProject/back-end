@@ -26,12 +26,14 @@ class file_reader:
                     checker.reverse()
                     count = 0
                     for i in range(0, len(checker)):
-                        if type(checker[i]) is int:
-                            count += 1
+                        try:
+                            if type(int(checker[i])) is int:
+                                count += 1
+                        except:
+                            pass
                     if count == num_of_lab:
-                        if int(sentence_elements[(-1*position)].replace("\n", "").strip()) != 0:
-                            data.append(",".join(sentence_elements[0: (-1*position)]))
-                            label.append(int(sentence_elements[-1].replace("\n", "").strip()))
+                        data.append(",".join(sentence_elements[0: -1*position]))
+                        label.append(int(sentence_elements[-1].replace("\n", "").strip()))
         
         return data, label
 
