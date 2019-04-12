@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from model.model import Model
 from keras.optimizers import Adam, RMSprop
 from model.lstm import lstm
+from model.gensim_w2v import gensim_w2v
 import model.text_processor as text_processor
 import web_scraper.goodreads.scraper as scraper
 from datetime import datetime
@@ -187,12 +188,13 @@ def get_all_books():
 
 if __name__=="__main__":
     model = Model().loadModelState('model/state/model_state.sav')
+    aspect_gensim = gensim_w2v()
     polarity_lstm = lstm()
     
     # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
     graph = tf.get_default_graph()
 
-    polarity_lstm.initialize_model(num_class=3,glove_direc="./model/vectors/glove.6B.100d.txt")
+    polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
     polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
     polarity_lstm.load_weights('./model/model_lstm.hdf5')
     port = int(os.environ.get('PORT', 33507))
