@@ -15,7 +15,7 @@ import random
 import tensorflow as tf
 import sys
 from sklearn.externals import joblib
-from file_reader import file_reader
+from model.file_reader import file_reader
 
 class lstm:
     def __init__(self):
@@ -74,9 +74,9 @@ class lstm:
 
 
     def initialize_model(self, num_class, weight_direc=None):
-        gensim_model = Word2Vec.load('gensim_model.sav')
+        gensim_model = Word2Vec.load('./model/gensim_model.sav')
         
-        self.tokenizer = joblib.load('review_tokenizer.sav')
+        self.tokenizer = joblib.load('./model/review_tokenizer.sav')
         word_index = self.tokenizer.word_index
         embeddings_index = {}
         if weight_direc is not None:

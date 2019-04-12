@@ -31,6 +31,11 @@ def replace_author(review, author="not available author"):
     review = review.replace(name_surname[0], "authname")
     return review
 
+def replace_bookname(review, bookname="not available bookname"):
+    title = bookname.split(" ")
+    review = review.replace(bookname, "bookname")
+    return review
+
 def tag_character(sentence):
     
     doc = nlp(sentence)
