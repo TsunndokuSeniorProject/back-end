@@ -22,7 +22,7 @@ class lstm:
         self.MAX_SEQUENCE_LENGTH = 40
         self.MAX_NB_WORDS = 20000
         self.EMBEDDING_DIM = 100
-        self.VALIDATION_SPLIT = 0.2
+        self.VALIDATION_SPLIT = 0.1
         self.tokenizer = Tokenizer(num_words=25000)
         
     def tokenize(self, train_direc):
@@ -154,8 +154,8 @@ class lstm:
 
 if __name__ == '__main__':
     lstm = lstm()
-    lstm.tokenize('C:/Users/hpEnvy/Downloads/neo_sentences_filtered.txt')
+    lstm.tokenize('C:/Users/USER/Downloads/neo_sentences_filtered.txt')
     lstm.initialize_model(num_class=3, weight_direc='gensim_vec.txt')
     lstm.compile_model(loss_function='categorical_crossentropy', optimizer=RMSprop(1e-4))
-    lstm.train('C:/Users/hpEnvy/Downloads/test.txt', epoch=13)
+    lstm.train('C:/Users/USER/Downloads/test.txt', epoch=13)
     # lstm.test("C:/Users/USER/Downloads/test.txt")
