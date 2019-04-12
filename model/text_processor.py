@@ -24,12 +24,19 @@ def filter_english(sentence_list):
                 filtered_sentence_list.append(tag_character(sentence))
     return filtered_sentence_list
 
+def replace_author(review, author="not available author"):
+    name_surname = author.split(" ")
+    review = review.replace(author, "authname")
+    review = review.replace(name_surname[-1], "authname")
+    review = review.replace(name_surname[0], "authname")
+    return review
 
 def tag_character(sentence):
+    
     doc = nlp(sentence)
     for entity in doc.ents:
         if entity.label_ is "PERSON":
-            sentence = sentence.replace(entity.text, "imp_char")
+            sentence = sentence.replace(entity.text, "impchar")
     return sentence.strip()
 
 def split_into_sentences_regex(text):

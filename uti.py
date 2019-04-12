@@ -13,13 +13,14 @@ for genre in genres:
         with open("web_scraper/goodreads/novel/{}/{}".format(genre, book), "r") as fp:
             data = json.load(fp)
         book_name = data["Name"]
+        author = data["Author"]
         for review in data["Reviews"]:
-            all_reviews += review["Review"].replace(book_name, "book_name") + " "
+            all_reviews += review["Review"].replace(book_name, "bookname") + " "
     #         break
     #     break
     # break
 
-    
+
 #     all_reviews += " {} is good.".format(genre)
 
 # genres = ["classics", "romance", "young" "adult", "mystery", "horror", "historical", "humor", "nonfiction", "thriller", "fiction", "crime", "science fiction", "fantasy"]        
