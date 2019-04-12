@@ -1,16 +1,19 @@
 from gensim.models import Word2Vec
 from gensim.test.utils import common_texts
 from gensim.utils import simple_preprocess, deaccent, tokenize, simple_tokenize
+from nltk.corpus import stopwords
+import nltk
 import sys
 sys.path.append("../")
 from file_reader import file_reader
 from oms import opinion_mining_system
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from text_processor import tag_character
 
 train_set = []
 train_direc = "C:/Users/USER/Downloads/neo_sentences_filtered.txt"
+
+stop_words = set(stopwords.words('english'))
 
 with open(train_direc, 'r', encoding='utf-8') as f:
     data = f.readlines()
@@ -27,29 +30,36 @@ threshold = 0.50
 #     coefs = np.asarray(values[1:], dtype='float32')
 #     embeddings_index[word] = coefs
 # f.close()
+print(stop_words)
+processed = []
+for sentence in data:
+    if len(sentence) > 2:
+        temp = simple_preprocess(sentence)
+        ready_to_add = []
+        for each in temp:
+            if each not in stop_words:
+                ready_to_add.append(each)
+        processed.append(ready_to_add)
+    # if len(sentence) > 2:
+    #     processed.append(simple_preprocess(sentence))
 
-# processed = []
-# for sentence in data:
-#     if len(sentence) > 1:
-#         processed.append(simple_preprocess(sentence))
+model = Word2Vec(processed)
 
-# model = Word2Vec(processed)
-
-# print("start training")
-# model.train(processed, total_examples=len(processed), epochs=10)
-# print("training finished")
+print("start training")
+model.train(processed, total_examples=len(processed), epochs=10)
+print("training finished")
 
 # model.save("gensim_model.sav")
-model = Word2Vec.load('gensim_model.sav')
+# model = Word2Vec.load('gensim_model.sav')
 
 # uncomment to write to file
-# writeout = ""
-# for word, vector in zip(model.wv.index2word, model.wv.vectors):
-#     writeout = writeout + word + " " + str(vector) + "\n"
+writeout = ""
+for word, vector in zip(model.wv.index2word, model.wv.vectors):
+    writeout = writeout + word + " " + str(list(vector)) + "\n"
 
-# with open('gensim_vec.txt', 'w+', encoding='utf8') as fp:
-#     fp.write(writeout)
-# fp.close()
+with open('gensim_vec.txt', 'w+', encoding='utf8') as fp:
+    fp.write(writeout)
+fp.close()
 
 
 test_set = []
