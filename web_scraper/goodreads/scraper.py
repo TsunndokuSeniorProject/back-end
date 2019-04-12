@@ -4,11 +4,39 @@ import json
 import re
 import os
 import time
+from pprint import pprint
 
 headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
     } 
+
+def get_book_info_google(book_name):
+
+    query = "+".join(book_name.strip().split(" "))
+    api = "https://www.googleapis.com/books/v1/volumes?q={}&maxResults=1".format(query)
+    res = requests.get(api, headers=headers)
+
+    res = json.loads(res.text)
+    author = ""
+    isbn = []
+    try:
+        if res["totalItems"] > 0:
+            for book in res["items"]:
+                if book_name.lower() == book["volumeInfo"]["title"].lower():
+
+                    pprint(book["volumeInfo"])
+                    if "authors" in book["volumeInfo"]:
+                        if type(book["volumeInfo"]["authors"]) is list:
+                            author = book["volumeInfo"]["authors"][0]
+                        else:
+                            author = book["volumeInfo"]["authors"]
+                    if "industryIdentifiers" in book["volumeInfo"]:
+                        isbn = book["volumeInfo"]["industryIdentifiers"]
+    except:
+        print("error occured")
+    print(author)
+    return author, isbn
 
 def get_id_by_genre(url):
 
@@ -117,6 +145,10 @@ def get_book_reviews(book_id):
             except:
                 pass
 
+        author, isbn = get_book_info_google(name)
+        book_reviews["Author"] = author
+        print(type(author))
+        book_reviews["ISBN"] = isbn
         return book_reviews
     else:
         return {"fail_message" : str(res.status_code)}
@@ -144,26 +176,33 @@ if __name__ == "__main__":
     # time.sleep(10)
 
     # print("all id "+str(len(book_id_list)))
-    book_id_list = list(set(collect_id_from_file("html/thriller/")))
-    with open("memo.json", "r") as fp:
-        hit = json.load(fp)
-    memo = hit["hit"]
-    for book_id in book_id_list:
-        if book_id not in memo:
-            print("start "+book_id)
-            data = get_book_reviews(book_id)
-            print("get review "+book_id)
-            path = "novel/"+str(data["Genre"]).lower()
-            if not os.path.exists(path):
-                os.makedirs(path)
-            print("genre "+str(data["Genre"]).lower())
-            with open(path+"/review_"+str(book_id)+".json", "w+") as fp:
-                json.dump(data, fp)
-                fp.close()        
-            print("done "+book_id)
-            memo.append(book_id)
-            with open("memo.json", "w") as fp:
-                json.dump({
-                    "hit":memo
-                }, fp)
-    
+
+
+
+
+    # book_id_list = list(set(collect_id_from_file("html/romance/")))
+    # with open("memo.json", "r") as fp:
+    #     hit = json.load(fp)
+    # memo = hit["hit"]
+    # for book_id in book_id_list:
+    #     if book_id not in memo:
+    #         print("start "+book_id)
+    #         data = get_book_reviews(book_id)
+    #         print("get review "+book_id)
+    #         path = "novel/"+str(data["Genre"]).lower()
+    #         if not os.path.exists(path):
+    #             os.makedirs(path)
+    #         print("genre "+str(data["Genre"]).lower())
+    #         with open(path+"/review_"+str(book_id)+".json", "w+") as fp:
+    #             json.dump(data, fp)
+    #             fp.close()        
+    #         print("done "+book_id)
+    #         memo.append(book_id)
+    #         with open("memo.json", "w") as fp:
+    #             json.dump({
+    #                 "hit":memo
+    #             }, fp)
+    #     else:
+    #         print("nothing left to download")
+
+    get_book_info_google("Club Shadowlands")
