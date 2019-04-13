@@ -17,8 +17,6 @@ import pymongo
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-import subprocess
-subprocess.run(["python -m spacy download en_core_web_sm"])
 
 app = Flask(__name__)
 
