@@ -4,7 +4,7 @@ import json
 import re
 import os
 import time
-from pprint import pprint
+# from pprint import pprint
 
 headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36',
@@ -25,7 +25,7 @@ def get_book_info_google(book_name):
             for book in res["items"]:
                 if book_name.lower() == book["volumeInfo"]["title"].lower():
 
-                    pprint(book["volumeInfo"])
+                    # pprint(book["volumeInfo"])
                     if "authors" in book["volumeInfo"]:
                         if type(book["volumeInfo"]["authors"]) is list:
                             author = book["volumeInfo"]["authors"][0]
@@ -35,7 +35,6 @@ def get_book_info_google(book_name):
                         isbn = book["volumeInfo"]["industryIdentifiers"]
     except:
         print("error occured")
-    print(author)
     return author, isbn
 
 def get_id_by_genre(url):
@@ -147,7 +146,6 @@ def get_book_reviews(book_id):
 
         author, isbn = get_book_info_google(name)
         book_reviews["Author"] = author
-        print(type(author))
         book_reviews["ISBN"] = isbn
         return book_reviews
     else:

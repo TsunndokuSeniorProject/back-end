@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request
-from model.model import Model
 from keras.optimizers import Adam, RMSprop
 from model.lstm import lstm
 from model.gensim_w2v import gensim_w2v
@@ -28,64 +27,10 @@ db = client.get_default_database()
 
 books = db['Books']
 
-####### Testing API #######
-
-temp_db_mutant = [{
-    "id":"weapon-X",
-    "name":"Logan Paul"
-}]
-temp_db_predict = [{
-    "id":1,
-    "height":68,
-    "weight":97,
-    "predicted_gender": "ApacheHelicopter",
-}]
 
 @app.route('/', methods=['GET'])
 def welcome():
     return jsonify({'acknowledge': "welcome to Tsun-Do-Ku api"})
-
-@app.route('/api/test', methods=['GET'])
-def get_test():
-    return jsonify({'test': "this is an example"})
-
-@app.route("/api/test/mutant", methods=['GET'])
-def get_mutant():
-    return jsonify(temp_db_mutant)
-
-@app.route("/api/test/mutant", methods=['POST'])
-def post_mutant():
-    req = request.json
-    if not req or not 'id' in req or not 'name' in req:
-        return "something missing",400
-    temp_db_mutant.append(req)
-    return jsonify(temp_db_mutant)
-
-@app.route("/api/test/predict", methods=['GET'])
-def get_gender_predict():
-    return jsonify(temp_db_predict)
-
-@app.route("/api/test/predict/<int:id>", methods=['GET'])
-def get_gender_predict_id(id):
-    id = id-1
-    if id > len(temp_db_predict):
-        return "not found or invalid id",400
-    else:
-        return jsonify(temp_db_predict[id])
-
-@app.route("/api/test/predict", methods=['POST'])
-def post_gender_predict():
-    req = request.json
-    if not req or not 'height' in req or not 'weight' in req:
-        return "something missing",400
-    predit_result = model.predict([[req['height'], req['weight']]])
-    temp_db_predict.append({
-        "id":len(temp_db_predict)+1,
-        "height":req['height'],
-        "weight":req['weight'],
-        "predicted_gender":predit_result[0]
-    })
-    return jsonify(temp_db_predict)
 
 
 ####### Production API #######
@@ -159,7 +104,7 @@ def get_review_by_id_with_predict_result(id):
 
 
 
-@app.route("/api/book/<string:id>", methods=['GET'])
+@app.route("/api/book/id/<string:id>", methods=['GET'])
 def get_book_by_id(id):
     query = books.find_one({"_id":str(id)})
     
@@ -192,7 +137,6 @@ def get_all_books():
     return jsonify({"all_books_in_genre":all_info})
 
 if __name__=="__main__":
-    model = Model().loadModelState('model/state/model_state.sav')
     aspect_gensim = gensim_w2v()
     polarity_lstm = lstm()
     
