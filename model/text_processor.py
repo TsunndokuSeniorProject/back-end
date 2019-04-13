@@ -4,10 +4,10 @@ import nltk
 import spacy
 import os
 import json
-import spacy
-nlp = spacy.load('en_core_web_sm')
-# import en_core_web_sm
-# nlp = en_core_web_sm.load()
+# import spacy
+# nlp = spacy.load('en_core_web_sm')
+import en_core_web_sm
+nlp = en_core_web_sm.load()
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
