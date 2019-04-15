@@ -91,18 +91,34 @@ def get_review_by_id_with_predict_result(id):
         sentences_list = text_processor.filter_english(sentences_list)
 
         aspect_res = aspect_gensim.predict(sentences_list)
-
+        
         global graph
         with graph.as_default():
             result = np.asarray(polarity_lstm.predict(sentences_list))
         result = find_max(result)
         result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+        result = pd.DataFrame({"sentences": sentences_list})
         result = result.to_dict("records")
         book_reviews['sentiment'] = result
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given id."})
 
 
+@app.route("/api/testML", methods=['GET'])
+def testML(text):
+    sentences_list = [""]
+
+    aspect_res = aspect_gensim.predict(sentences_list)
+    
+    global graph
+    with graph.as_default():
+        result = np.asarray(polarity_lstm.predict(sentences_list))
+    result = find_max(result)
+    result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+    result = pd.DataFrame({"sentences": sentences_list})
+    result = result.to_dict("records")
+    book_reviews['sentiment'] = result
+    return jsonify(book_reviews)
 
 @app.route("/api/book/id/<string:id>", methods=['GET'])
 def get_book_by_id(id):
@@ -148,4 +164,3 @@ if __name__=="__main__":
     polarity_lstm.load_weights('./model/model_lstm.hdf5')
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
-
