@@ -105,8 +105,8 @@ def get_review_by_id_with_predict_result(id):
 
 
 @app.route("/api/testML", methods=['GET'])
-def testML(text):
-    sentences_list = [""]
+def testML():
+    sentences_list = ["I hope for each and every time I pick up a book", "I love twilight", "She travels to her clients instead of them coming to her", "But then she overhears a voicemail message one of the women plays"]
 
     aspect_res = aspect_gensim.predict(sentences_list)
     
@@ -117,7 +117,7 @@ def testML(text):
     result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
     result = pd.DataFrame({"sentences": sentences_list})
     result = result.to_dict("records")
-    book_reviews['sentiment'] = result
+    book_reviews = result
     return jsonify(book_reviews)
 
 @app.route("/api/book/id/<string:id>", methods=['GET'])
