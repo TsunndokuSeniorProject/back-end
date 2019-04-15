@@ -107,7 +107,7 @@ def get_review_by_id_with_predict_result(id):
 @app.route("/api/testML", methods=['GET'])
 def testML():
     sentences_list = ["I hope for each and every time I pick up a book", "I love twilight", "She travels to her clients instead of them coming to her", "But then she overhears a voicemail message one of the women plays"]
-
+    aspect_gensim = gensim_w2v()
     aspect_res = aspect_gensim.predict(sentences_list)
     
     global graph
