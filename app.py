@@ -16,7 +16,6 @@ import pymongo
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-
 app = Flask(__name__)
 
 uri = "mongodb://tsundoku_db:tsundoku_db_007@ds133875.mlab.com:33875/tsundoku"
