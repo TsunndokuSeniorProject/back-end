@@ -16,7 +16,6 @@ import pymongo
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')

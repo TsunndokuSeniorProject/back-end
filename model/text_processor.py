@@ -8,11 +8,11 @@ import json
 # nlp = spacy.load('en_core_web_sm')
 import en_core_web_sm
 nlp = en_core_web_sm.load()
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('sentiwordnet')
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+# nltk.download('sentiwordnet')
 
 def filter_english(sentence_list):
     filtered_sentence_list = []
