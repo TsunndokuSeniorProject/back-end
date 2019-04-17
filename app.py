@@ -26,6 +26,7 @@ db = client.get_default_database()
 
 books = db['Books']
 
+graph = tf.get_default_graph()
 
 @app.route('/', methods=['GET'])
 def welcome():
@@ -156,7 +157,7 @@ if __name__=="__main__":
     polarity_lstm = lstm()
     
     # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
-    graph = tf.get_default_graph()
+
 
     polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
     polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
