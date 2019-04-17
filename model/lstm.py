@@ -163,7 +163,7 @@ class lstm:
 
     
     def predict(self, incoming_review):
-        text
+        
         test_sequences = self.tokenizer.texts_to_sequences(incoming_review)
         test_data = pad_sequences(test_sequences, maxlen=self.MAX_SEQUENCE_LENGTH)
 
