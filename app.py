@@ -115,7 +115,6 @@ def testML():
         result = np.asarray(polarity_lstm.predict(sentences_list))
     result = find_max(result)
     result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
-    result = pd.DataFrame({"sentences": sentences_list})
     result = result.to_dict("records")
     book_reviews = result
     return jsonify(book_reviews)
