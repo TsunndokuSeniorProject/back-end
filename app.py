@@ -28,6 +28,10 @@ books = db['Books']
 
 graph = tf.get_default_graph()
 
+aspect_gensim = gensim_w2v()
+
+polarity_lstm = lstm()
+
 @app.route('/', methods=['GET'])
 def welcome():
     return jsonify({'acknowledge': "welcome to Tsun-Do-Ku api"})
@@ -63,7 +67,7 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = text_processor.replace_bookname(text, book_reviews["Name"])
             sentences_list = text_processor.split_into_sentences(text)
             sentences_list = text_processor.filter_english(sentences_list)
-
+            global aspect_res
             aspect_res = aspect_gensim.predict(sentences_list)
 
             global graph
@@ -89,9 +93,8 @@ def get_review_by_id_with_predict_result(id):
         text = text_processor.replace_bookname(text, book_reviews["Name"])
         sentences_list = text_processor.split_into_sentences(text)
         sentences_list = text_processor.filter_english(sentences_list)
-
+        global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
-        
         global graph
         with graph.as_default():
             result = np.asarray(polarity_lstm.predict(sentences_list))
@@ -107,7 +110,7 @@ def get_review_by_id_with_predict_result(id):
 @app.route("/api/testML", methods=['GET'])
 def testML():
     sentences_list = ["I hope for each and every time I pick up a book", "I love twilight", "She travels to her clients instead of them coming to her", "But then she overhears a voicemail message one of the women plays"]
-    aspect_gensim = gensim_w2v()
+    global aspect_res
     aspect_res = aspect_gensim.predict(sentences_list)
     
     global graph
@@ -152,11 +155,10 @@ def get_all_books():
     return jsonify({"all_books_in_genre":all_info})
 
 if __name__=="__main__":
-    aspect_gensim = gensim_w2v()
-    polarity_lstm = lstm()
+    
+    global aspect_gensim, polarity_lstm
     
     # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
-
 
     polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
     polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
