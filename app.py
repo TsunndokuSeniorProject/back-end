@@ -156,7 +156,6 @@ def get_all_books():
 
 if __name__=="__main__":
     
-    global polarity_lstm
     
     # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
 
