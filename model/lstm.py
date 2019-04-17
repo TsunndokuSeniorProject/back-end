@@ -103,7 +103,7 @@ class lstm:
                                     input_length=self.MAX_SEQUENCE_LENGTH, trainable=False)
 
         else:
-            embeddings = Embedding(10000, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
+            embeddings = Embedding(44500, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
 
         sequence_input = Input(shape=(self.MAX_SEQUENCE_LENGTH,), dtype='int32')
         embedded_sequences = embeddings(sequence_input)
