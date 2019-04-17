@@ -34,7 +34,7 @@ polarity_lstm = lstm()
 
 # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
 
-polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
+polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/wordvectors.kv")
 polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
 polarity_lstm.load_weights('./model/model_lstm.hdf5')
 

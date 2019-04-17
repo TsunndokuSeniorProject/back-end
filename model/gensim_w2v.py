@@ -1,4 +1,4 @@
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, KeyedVectors
 from gensim.test.utils import common_texts
 from gensim.utils import simple_preprocess, deaccent, tokenize, simple_tokenize
 from nltk.corpus import stopwords
@@ -15,7 +15,7 @@ class gensim_w2v:
         self.threshold = 0.5
         self.EMBEDDING_DIM = 100
         self.model = Word2Vec()
-
+        
 
     def train(self, input_text=None):
         train_set = []
@@ -44,6 +44,8 @@ class gensim_w2v:
         print("training finished")
 
         self.model.save("gensim_model.sav")
+        path = 'wordvectors.kv'
+        self.model.wv.save(path)
 
     # # uncomment to write to file
     # writeout = ""
@@ -141,7 +143,7 @@ class gensim_w2v:
 
 
     def predict(self, input_text):
-        self.model = Word2Vec.load('model/gensim_model.sav')
+        wv = KeyedVectors.load('wordvectors.kv', mmap='r')
         pred_res = []
         aspects = opinion_mining_system().operate_aspect_extraction(input_text)
         for sen, aspect in zip(input_text, aspects):
@@ -150,11 +152,11 @@ class gensim_w2v:
                 if ele.lower() in sen.lower():
                     a = dict()
                     try:
-                        a['story_sim'] = self.model.similarity('story', ele.lower())
-                        a['char_sim'] = self.model.similarity('impchar', ele.lower())
-                        if self.model.similarity('character', ele.lower()) > a['char_sim']:
-                            a['char_sim'] = self.model.similarity('character', ele.lower())
-                        a['writing_sim'] = self.model.similarity('writing', ele.lower())
+                        a['story_sim'] = wv.similarity('story', ele.lower())
+                        a['char_sim'] = wv.similarity('impchar', ele.lower())
+                        if wv.similarity('character', ele.lower()) > a['char_sim']:
+                            a['char_sim'] = wv.similarity('character', ele.lower())
+                        a['writing_sim'] = wv.similarity('writing', ele.lower())
                         # if model.similarity('novel', ele.lower()) > a['writing_sim']:
                         #     a['writing_sim'] = model.similarity('novel', ele.lower())
                         max_sim = max(a.values())
