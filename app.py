@@ -69,8 +69,7 @@ def get_review_by_isbn_with_predict_result(isbn):
             sentences_list = text_processor.filter_english(sentences_list)
             global aspect_res
             aspect_res = aspect_gensim.predict(sentences_list)
-
-            global graph
+            global graph, polarity_lstm
             with graph.as_default():
                 result = np.asarray(polarity_lstm.predict(sentences_list))
             result = find_max(result)
@@ -95,7 +94,7 @@ def get_review_by_id_with_predict_result(id):
         sentences_list = text_processor.filter_english(sentences_list)
         global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
-        global graph
+        global graph, polarity_lstm
         with graph.as_default():
             result = np.asarray(polarity_lstm.predict(sentences_list))
         result = find_max(result)
@@ -113,7 +112,7 @@ def testML():
     global aspect_res
     aspect_res = aspect_gensim.predict(sentences_list)
     
-    global graph
+    global graph, polarity_lstm
     with graph.as_default():
         result = np.asarray(polarity_lstm.predict(sentences_list))
     result = find_max(result)
