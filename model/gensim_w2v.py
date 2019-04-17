@@ -143,7 +143,7 @@ class gensim_w2v:
 
 
     def predict(self, input_text):
-        wv = KeyedVectors.load('wordvectors.kv', mmap='r')
+        wv = KeyedVectors.load('./model/wordvectors.kv', mmap='r')
         pred_res = []
         aspects = opinion_mining_system().operate_aspect_extraction(input_text)
         for sen, aspect in zip(input_text, aspects):

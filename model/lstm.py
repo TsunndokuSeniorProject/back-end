@@ -97,12 +97,13 @@ class lstm:
                     # words not found in embedding index will be all-zeros.
                     embedding_matrix[i] = embedding_vector
 
-            embeddings = Embedding(len(word_index) + 1,
+            # embeddings = Embedding(len(word_index) + 1,
+            embeddings = Embedding(10000,
                                     self.EMBEDDING_DIM,weights=[embedding_matrix],
                                     input_length=self.MAX_SEQUENCE_LENGTH, trainable=False)
 
         else:
-            embeddings = Embedding(len(word_index) + 1, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
+            embeddings = Embedding(10000, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
 
         sequence_input = Input(shape=(self.MAX_SEQUENCE_LENGTH,), dtype='int32')
         embedded_sequences = embeddings(sequence_input)
