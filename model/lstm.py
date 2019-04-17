@@ -50,7 +50,7 @@ class lstm:
                     processed.append(ready_to_add)
         
         self.tokenizer.fit_on_texts(processed)
-        joblib.dump(self.tokenizer, 'review_tokenizer.sav')
+        joblib.dump(self.tokenizer, './model/review_tokenizer.sav')
 
     def train(self, train_direc, epoch):        
         train_set, raw_train_labels = file_reader().read_v2(train_direc, 1, 2)
@@ -91,11 +91,11 @@ class lstm:
 
     def initialize_model(self, num_class, weight_direc=None):
         
-        self.tokenizer = joblib.load('review_tokenizer.sav')
+        self.tokenizer = joblib.load('./model/review_tokenizer.sav')
         word_index = self.tokenizer.word_index
         embeddings_index = {}
         if weight_direc is not None:
-            wv = KeyedVectors.load('wordvectors.kv', mmap='r')
+            wv = KeyedVectors.load('./model/wordvectors.kv', mmap='r')
             line = 0
             # f = open(weight_direc,encoding='utf8')
             for line in range(0, self.tokenizer.num_words):
