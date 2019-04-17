@@ -81,15 +81,15 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = text_processor.replace_bookname(text, book_reviews["Name"])
             sentences_list = text_processor.split_into_sentences(text)
             sentences_list = text_processor.filter_english(sentences_list)
-            global aspect_res
-            aspect_res = aspect_gensim.predict(sentences_list)
-            global graph, polarity_lstm
-            with graph.as_default():
-                result = np.asarray(polarity_lstm.predict(sentences_list))
-            result = find_max(result)
-            result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
-            result = result.to_dict("records")
-            book_reviews['sentiment'] = result
+            # global aspect_res
+            # aspect_res = aspect_gensim.predict(sentences_list)
+            # global graph, polarity_lstm
+            # with graph.as_default():
+            #     result = np.asarray(polarity_lstm.predict(sentences_list))
+            # result = find_max(result)
+            # result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+            # result = result.to_dict("records")
+            book_reviews['sentiment'] = sentences_list #result
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
@@ -106,16 +106,16 @@ def get_review_by_id_with_predict_result(id):
         text = text_processor.replace_bookname(text, book_reviews["Name"])
         sentences_list = text_processor.split_into_sentences(text)
         sentences_list = text_processor.filter_english(sentences_list)
-        global aspect_res
-        aspect_res = aspect_gensim.predict(sentences_list)
-        global graph, polarity_lstm
-        with graph.as_default():
-            result = np.asarray(polarity_lstm.predict(sentences_list))
-        result = find_max(result)
-        result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
-        result = pd.DataFrame({"sentences": sentences_list})
-        result = result.to_dict("records")
-        book_reviews['sentiment'] = result
+        # global aspect_res
+        # aspect_res = aspect_gensim.predict(sentences_list)
+        # global graph, polarity_lstm
+        # with graph.as_default():
+        #     result = np.asarray(polarity_lstm.predict(sentences_list))
+        # result = find_max(result)
+        # result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+        # result = pd.DataFrame({"sentences": sentences_list})
+        # result = result.to_dict("records")
+        book_reviews['sentiment'] = sentences_list#result
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given id."})
 
