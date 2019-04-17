@@ -2,6 +2,9 @@ from keras.optimizers import Adam, RMSprop
 from keras.layers import LSTM, Embedding, Dense, Input, GRU, Bidirectional
 from keras import Model
 from gensim.models.word2vec import Word2Vec
+from gensim.utils import simple_preprocess, deaccent, tokenize, simple_tokenize
+from nltk.corpus import stopwords
+import nltk
 from gensim.models import KeyedVectors
 import os
 import json
@@ -16,24 +19,40 @@ import random
 import tensorflow as tf
 import sys
 from sklearn.externals import joblib
-from model.file_reader import file_reader
+from file_reader import file_reader
 
 class lstm:
     def __init__(self):
-        self.MAX_SEQUENCE_LENGTH = 40
+        self.MAX_SEQUENCE_LENGTH = 20
         self.MAX_NB_WORDS = 20000
         self.EMBEDDING_DIM = 100
         self.VALIDATION_SPLIT = 0.1
-        self.tokenizer = Tokenizer(num_words=25000)
+        self.tokenizer = Tokenizer(num_words=40000)
         
     def tokenize(self, train_direc):
-        with open(train_direc, 'r') as fp:
-            data = fp.readlines()
-        self.tokenizer.fit_on_texts(data)
-        joblib.dump(self.tokenizer, './review_tokenizer.sav')
-
-    def train(self, train_direc, epoch):
+        with open(train_direc, 'r', encoding='utf-8') as f:
+            data = f.readlines()
+        f.close()
+        stop_words = set(stopwords.words('english'))
         
+        processed = []
+        count = 0
+        for sentence in data:
+            if len(sentence.split(" ")) > 2:
+                temp = simple_preprocess(sentence, deacc=True)
+                ready_to_add = []
+                for each in temp:
+                    if each not in stop_words:
+                        ready_to_add.append(each)
+                count += len(ready_to_add)
+                
+                if len(ready_to_add) > 2:
+                    processed.append(ready_to_add)
+        
+        self.tokenizer.fit_on_texts(processed)
+        joblib.dump(self.tokenizer, 'review_tokenizer.sav')
+
+    def train(self, train_direc, epoch):        
         train_set, raw_train_labels = file_reader().read_v2(train_direc, 1, 2)
         train_labels = []
         for label in raw_train_labels:
@@ -41,8 +60,6 @@ class lstm:
                 train_labels.append(2)
             else:
                 train_labels.append(label)
-        self.tokenizer.fit_on_texts(train_set)
-        joblib.dump(self.tokenizer, './review_tokenizer.sav')
         
         train_sequences = self.tokenizer.texts_to_sequences(train_set)
         # train_labels = to_categorical(np.asarray(train_labels))
@@ -74,15 +91,14 @@ class lstm:
 
     def initialize_model(self, num_class, weight_direc=None):
         
-        self.tokenizer = joblib.load('./model/review_tokenizer.sav')
+        self.tokenizer = joblib.load('review_tokenizer.sav')
         word_index = self.tokenizer.word_index
         embeddings_index = {}
         if weight_direc is not None:
-            print(weight_direc)
-            wv = KeyedVectors.load('./model/wordvectors.kv', mmap='r')
+            wv = KeyedVectors.load('wordvectors.kv', mmap='r')
             line = 0
             # f = open(weight_direc,encoding='utf8')
-            for line in range(0, len(wv.index2word)):
+            for line in range(0, self.tokenizer.num_words):
                 
                 word = wv.index2word[line]
                 coefs = np.asarray(wv[word], dtype='float32')
@@ -90,20 +106,22 @@ class lstm:
 
             print('Total %s word vectors in provided weight direc.' % len(embeddings_index))
 
-            embedding_matrix = np.random.random((len(word_index) + 1, self.EMBEDDING_DIM))
-            for word, i in word_index.items():
+            embedding_matrix = np.random.random((self.tokenizer.num_words + 1, self.EMBEDDING_DIM))
+            for i in range(0, len(wv.index2word)):
+                word = wv.index2word[i]
+                print(word)
                 embedding_vector = embeddings_index.get(word)
                 if embedding_vector is not None:
                     # words not found in embedding index will be all-zeros.
                     embedding_matrix[i] = embedding_vector
 
             # embeddings = Embedding(len(word_index) + 1,
-            embeddings = Embedding(10000,
+            embeddings = Embedding(self.tokenizer.num_words + 1,
                                     self.EMBEDDING_DIM,weights=[embedding_matrix],
                                     input_length=self.MAX_SEQUENCE_LENGTH, trainable=False)
 
         else:
-            embeddings = Embedding(44500, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
+            embeddings = Embedding(len(word_index) + 1, self.EMBEDDING_DIM, input_length=self.MAX_SEQUENCE_LENGTH, trainable=True)
 
         sequence_input = Input(shape=(self.MAX_SEQUENCE_LENGTH,), dtype='int32')
         embedded_sequences = embeddings(sequence_input)
@@ -145,6 +163,7 @@ class lstm:
 
     
     def predict(self, incoming_review):
+        text
         test_sequences = self.tokenizer.texts_to_sequences(incoming_review)
         test_data = pad_sequences(test_sequences, maxlen=self.MAX_SEQUENCE_LENGTH)
 
@@ -155,7 +174,7 @@ class lstm:
 if __name__ == '__main__':
     lstm = lstm()
     lstm.tokenize('C:/Users/USER/Downloads/neo_sentences_filtered.txt')
-    lstm.initialize_model(num_class=3, weight_direc='./model/wordvectors.kv')
-    lstm.compile_model(loss_function='categorical_crossentropy', optimizer=RMSprop(1e-4))
-    lstm.train('C:/Users/USER/Downloads/test.txt', epoch=13)
+    lstm.initialize_model(num_class=3, weight_direc='wordvectors.kv')
+    lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam(1e-4))
+    lstm.train('C:/Users/USER/Downloads/test.txt', epoch=12)
     # lstm.test("C:/Users/USER/Downloads/test.txt")
