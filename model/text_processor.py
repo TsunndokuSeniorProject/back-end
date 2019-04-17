@@ -17,8 +17,10 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('sentiwordnet')
 
-stopWords = set(stopwords.words('english'))
 from nltk.corpus import stopwords
+stopWords = set(stopwords.words('english'))
+
+
 def remove_stop_word(sentence):
     tokens = sentence.split(" ")
     new_sentence = []
