@@ -4,19 +4,21 @@ import nltk
 import spacy
 import os
 import json
-from nltk.corpus import stopwords
+
 # import spacy
 # nlp = spacy.load('en_core_web_sm')
 import en_core_web_sm
 nlp = en_core_web_sm.load()
 
-stopWords = set(stopwords.words('english'))
-# nltk.download('punkt')
-# nltk.download('averaged_perceptron_tagger')
-# nltk.download('stopwords')
-# nltk.download('wordnet')
-# nltk.download('sentiwordnet')
 
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('sentiwordnet')
+
+stopWords = set(stopwords.words('english'))
+from nltk.corpus import stopwords
 def remove_stop_word(sentence):
     tokens = sentence.split(" ")
     new_sentence = []
