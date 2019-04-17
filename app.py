@@ -32,6 +32,14 @@ aspect_gensim = gensim_w2v()
 
 polarity_lstm = lstm()
 
+# fix for tensor not element of graph error -- the graph variable will be use at the predict() function
+
+polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
+polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
+polarity_lstm.load_weights('./model/model_lstm.hdf5')
+
+
+
 @app.route('/', methods=['GET'])
 def welcome():
     return jsonify({'acknowledge': "welcome to Tsun-Do-Ku api"})
@@ -156,10 +164,6 @@ def get_all_books():
 if __name__=="__main__":
     
     
-    # fix for tensor not element of graph error -- the graph variable will be use at the predict() function
 
-    polarity_lstm.initialize_model(num_class=3, weight_direc="./model/vectors/gensim_vec.txt")
-    polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
-    polarity_lstm.load_weights('./model/model_lstm.hdf5')
     port = int(os.environ.get('PORT', 33507))
     app.run(debug=True, port=port)
