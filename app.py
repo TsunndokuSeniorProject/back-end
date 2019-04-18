@@ -85,7 +85,9 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = text_processor.replace_bookname(text, book_reviews["Name"])
             # print(datetime.datetime.now())
             # print("replace bookname")
-            text = text_processor.tag_character(text)
+
+            # text = text_processor.tag_character(text)
+
             # print(datetime.datetime.now())
             # print("replace impchar")
             sentences_list = text_processor.split_into_sentences_regex(text)
@@ -124,7 +126,9 @@ def get_review_by_id_with_predict_result(id):
         text = text_processor.replace_bookname(text, book_reviews["Name"])
         # print(datetime.datetime.now())
         # print("replace bookname")
-        text = text_processor.tag_character(text)
+
+        # text = text_processor.tag_character(text)
+
         # print(datetime.datetime.now())
         # print("replace impchar")
         sentences_list = text_processor.split_into_sentences_regex(text)
