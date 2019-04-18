@@ -31,7 +31,7 @@ def filter_english(sentence_list):
     for sentence in sentence_list:
         sentence = remove_stop_word(sentence)
         # if re.search(r'[^\u0000-\u007F]+', sentence) == None:
-        sentence = re.sub(r'[^\u0041-\u005A | ^\u0061-\u007A]', " ", sentence)
+        sentence = re.sub(r'[^\u0041-\u005A | ^\u0061-\u007A]', "", sentence)
         sentence = re.sub(r'\s+', " ", sentence)
 
         if sentence != " ":
