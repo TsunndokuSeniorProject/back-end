@@ -16,6 +16,7 @@ import pymongo
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import datetime
 # nltk.download('punkt')
 # nltk.download('averaged_perceptron_tagger')
 # nltk.download('stopwords')
@@ -45,13 +46,15 @@ polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=
 # polarity_lstm.load_weights('./model/model_lstm.hdf5')
 
 
+def find_max(np_list):
+    result = []
+    for np_item in np_list:
+        result.append(np.argmax(np_item))
+    return result
 
 @app.route('/', methods=['GET'])
 def welcome():
     return jsonify({'acknowledge': "welcome to Tsun-Do-Ku api"})
-
-
-####### Production API #######
 
 @app.route("/api/book/isbn/<string:isbn>", methods=['GET'])
 def get_review_by_isbn(isbn):
@@ -61,14 +64,10 @@ def get_review_by_isbn(isbn):
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
-def find_max(np_list):
-    result = []
-    for np_item in np_list:
-        result.append(np.argmax(np_item))
-    return result
 @app.route("/api/book/isbn/interpret/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_with_predict_result(isbn):
-    
+    # print(datetime.datetime.now())
+    # print("start")
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
         book_reviews = scraper.get_book_reviews(book_id.text)
@@ -76,11 +75,25 @@ def get_review_by_isbn_with_predict_result(isbn):
             text = ""
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
-            print(book_reviews["Author"])
-            # text = text_processor.replace_author(text, book_reviews["Author"])
-            # text = text_processor.replace_bookname(text, book_reviews["Name"])
-            sentences_list = text_processor.split_into_sentences(text)
-            # sentences_list = text_processor.filter_english(sentences_list)
+            
+            # print(book_reviews["Author"])
+            # print(datetime.datetime.now())
+            print("consolidate review")
+            text = text_processor.replace_author(text, book_reviews["Author"])
+            # print(datetime.datetime.now())
+            # print("replace author")
+            text = text_processor.replace_bookname(text, book_reviews["Name"])
+            # print(datetime.datetime.now())
+            # print("replace bookname")
+            text = text_processor.tag_character(text)
+            # print(datetime.datetime.now())
+            # print("replace impchar")
+            sentences_list = text_processor.split_into_sentences_regex(text)
+            # print(datetime.datetime.now())
+            # print("split")
+            sentences_list = text_processor.filter_english(sentences_list)
+            # print(datetime.datetime.now())
+            # print("fiter and stop word")
             global aspect_res
             aspect_res = aspect_gensim.predict(sentences_list)
             global graph, polarity_lstm
@@ -102,10 +115,24 @@ def get_review_by_id_with_predict_result(id):
         for review in book_reviews['Reviews']:
             text += review['Review'] + " "
 
-        # text = text_processor.replace_author(text, book_reviews["Author"])
-        # text = text_processor.replace_bookname(text, book_reviews["Name"])
-        sentences_list = text_processor.split_into_sentences(text)
-        # sentences_list = text_processor.filter_english(sentences_list)
+        print(book_reviews["Author"])
+        # print(datetime.datetime.now())
+        # print("consolidate review")
+        text = text_processor.replace_author(text, book_reviews["Author"])
+        # print(datetime.datetime.now())
+        # print("replace author")
+        text = text_processor.replace_bookname(text, book_reviews["Name"])
+        # print(datetime.datetime.now())
+        # print("replace bookname")
+        text = text_processor.tag_character(text)
+        # print(datetime.datetime.now())
+        # print("replace impchar")
+        sentences_list = text_processor.split_into_sentences_regex(text)
+        # print(datetime.datetime.now())
+        # print("split")
+        sentences_list = text_processor.filter_english(sentences_list)
+        # print(datetime.datetime.now())
+        # print("fiter and stop word")
         global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
         global graph, polarity_lstm

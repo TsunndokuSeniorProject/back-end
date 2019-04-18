@@ -4,6 +4,7 @@ import json
 import re
 import os
 import time
+import datetime
 # from pprint import pprint
 
 headers = {
@@ -12,7 +13,8 @@ headers = {
     } 
 
 def get_book_info_google(book_name):
-
+    # print(datetime.datetime.now())
+    # print("start google")
     query = "+".join(book_name.strip().split(" "))
     api = "https://www.googleapis.com/books/v1/volumes?q={}&maxResults=1".format(query)
     res = requests.get(api, headers=headers)
@@ -35,6 +37,9 @@ def get_book_info_google(book_name):
                         isbn = book["volumeInfo"]["industryIdentifiers"]
     except:
         print("error occured")
+
+    # print(datetime.datetime.now())
+    # print("end google")
     return author, isbn
 
 def get_id_by_genre(url):
@@ -96,7 +101,9 @@ def collect_id_from_file(directory):
     return book_id_list
 
 def get_book_reviews(book_id):
-    print(book_id)
+    print("Book_ID : {}".format(book_id))
+    # print(datetime.datetime.now())
+    # print("start get book review")
     res = requests.get("https://www.goodreads.com/book/show/"+book_id, headers=headers)
     if str(res.status_code) == "200":
         soup = BeautifulSoup(res.text,"html.parser")
@@ -147,6 +154,8 @@ def get_book_reviews(book_id):
         author, isbn = get_book_info_google(name)
         book_reviews["Author"] = author
         book_reviews["ISBN"] = isbn
+        # print(datetime.datetime.now())
+        # print("end get book")
         return book_reviews
     else:
         return {"fail_message" : str(res.status_code)}
