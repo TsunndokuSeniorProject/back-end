@@ -49,7 +49,7 @@ class opinion_mining_system:
             tagged_sen = nltk.pos_tag(nltk.word_tokenize(sentence))
             asp_sen = []
             for pos in tagged_sen:
-                if "NN" in pos[1]:
+                if "NN" in pos[1] or "VB" in pos[1]:
                     asp_sen.append(pos[0])
             sentence_pos_list.append(asp_sen)
         print(len(sentence_pos_list))
