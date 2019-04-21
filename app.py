@@ -4,6 +4,7 @@ from model.lstm import lstm
 from model.gensim_w2v import gensim_w2v
 import model.text_processor as text_processor
 import web_scraper.goodreads.scraper as scraper
+from model.aggregator import compute_score
 from datetime import datetime
 import time
 import os
@@ -43,7 +44,7 @@ polarity_lstm = lstm()
 
 polarity_lstm.initialize_model(num_class=3)
 polarity_lstm.compile_model(loss_function='categorical_crossentropy', optimizer=Adam())
-# polarity_lstm.load_weights('./model/model_lstm.hdf5')
+polarity_lstm.load_weights('./model/model_lstm.hdf5')
 
 
 def find_max(np_list):
@@ -98,13 +99,16 @@ def get_review_by_isbn_with_predict_result(isbn):
             # print("fiter and stop word")
             global aspect_res
             aspect_res = aspect_gensim.predict(sentences_list)
-            global graph, polarity_lstm
+            global graph, polarity_lstm        
+            polar_res = []
             with graph.as_default():
-                result = np.asarray(polarity_lstm.predict(sentences_list))
+                polar_res = polarity_lstm.predict(sentences_list)
+                result = np.asarray(polar_res)
             result = find_max(result)
+            book_reviews['sentiment'] = compute_score(aspect_res, result)
             result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
             result = result.to_dict("records")
-            book_reviews['sentiment'] = result
+            book_reviews['analysis'] = result
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
@@ -140,12 +144,16 @@ def get_review_by_id_with_predict_result(id):
         global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
         global graph, polarity_lstm
+        polar_res = []
         with graph.as_default():
-            result = np.asarray(polarity_lstm.predict(sentences_list))
+            polar_res = polarity_lstm.predict(sentences_list)
+            result = np.asarray(polar_res)
         result = find_max(result)
+        book_reviews['sentiment'] = compute_score(aspect_res, result)
         result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
         result = result.to_dict("records")
-        book_reviews['sentiment'] = result
+        book_reviews['analysis'] = result
+        
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given id."})
 
