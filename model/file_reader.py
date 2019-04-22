@@ -31,9 +31,8 @@ class file_reader:
                                 count += 1
                         except:
                             pass
-                    if count == num_of_lab:
-                        data.append(",".join(sentence_elements[0: -1*position]))
-                        label.append(int(sentence_elements[-1*position].replace("\n", "").strip()))
+                    data.append(",".join(sentence_elements[0: -1*position]))
+                    label.append(int(sentence_elements[-1*position].replace("\n", "").strip()))
                         # print(int(sentence_elements[-1*position].replace("\n", "").strip()))
                     # else:
                     #     print(line)
