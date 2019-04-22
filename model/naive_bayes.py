@@ -3,13 +3,11 @@ import os
 import json
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.naive_bayes import MultinomialNB, GaussianNB
+from sklearn.naive_bayes import MultinomialNB, GaussianNB, ComplementNB
 import re
 import csv
 from file_reader import file_reader
 import random
-reviews = []
-labels = []
 
 # with open(directory, "r", encoding="utf-8") as fp:
 #     data = fp.readlines()
@@ -17,16 +15,27 @@ labels = []
 # zeros = []
 # zero_label = []
 
-with open("C:/Users/USER/Downloads/movie-review/movie_review.csv") as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-      reviews.append(list(row.values())[4])
-      if list(row.values())[5] == 'neg':
-          labels.append(-1)
-      else:
-          labels.append(1)
+raw_review, raw_label = file_reader().read_v2('C:/Users/USER/Downloads/test.txt', 1, 2)
 
-
+pre_reviews = raw_review[:1500]
+pre_labels = raw_label[:1500]
+test_set = raw_review[1500:]
+test_labels = raw_label[1500:]
+count = 0
+reviews = []
+labels = []
+for review, label in zip(pre_reviews, pre_labels):
+    if label == 0:
+        if count == 2:
+            count = 0
+            continue
+        else:
+            count += 1
+            reviews.append(review)
+            labels.append(label)
+    else:
+        reviews.append(review)
+        labels.append(label)
 
 
 # skip = 0
@@ -63,40 +72,37 @@ for single in labels:
 print(count)
 count_vec = CountVectorizer()
 
-xtrain = count_vec.fit_transform(reviews)
+xtrain = count_vec.fit_transform(pre_reviews)
 tfidf_transformer = TfidfTransformer()
 xtrain_tfidf = tfidf_transformer.fit_transform(xtrain)
 
-clf = MultinomialNB().fit(xtrain_tfidf, labels)
-# test_string = ["I hate Harry Potter", "The story is very rich", "Vaguely headachey, I needed a reading distraction, and the appropriate story in these kinds of situations is a touchy one", "The character sucks, I don't enjoy the protagonist at all"]
-# test_string.append("Probably the worst part is struggling through all the rampant racism, which isn't nearly as funny as the rampant anti-Mormonism was in aSiS")
-# test_string.append("The writing by Agartha Christie is superb, the pacing was great")
-# test_string.append("the fact that the cover is the most evocative thing about a novel that should have had atmosphere to die for made me feel like I was dying inside each time I turned the page only to discover 100% plot mechanics and 0% anything of interest besides the, I suppose, \"page-turning\" plot.")
-# test_string.append("The emphasis in this well-intentioned advice by Mrs. Fairfax is on the word MARRY.")
-# test_string.append("Anna is so bitchy i wanna kill her")
-# test_string.append("Is she so terrified of breaking cultural norms and coming across as a mean-crazy-angry-dyke-shrill-frigid bitch")
-# test_string.append("How could this be a work of a professional writer? The book was awful to read")
-# test = count_vec.transform(test_string)
-# test = tfidf_transformer.transform(test)
-
-test_set = []
-test_direc = "C:/Users/USER/Desktop/574-902.txt"
-
-test_set, test_labels = file_reader().read_v2(path=test_direc)
+clf = ComplementNB().fit(xtrain_tfidf, pre_labels)
 
 # with open(test_direc, 'r', encoding='utf-8') as fp:
 #     test_data = fp.readlines()
 # for sen in test_data:
 #     test_set.append(sen)
-
-print(test_labels)
-
+count = {}
+for single in test_labels:
+    if single in count:
+        count[single] += 1
+    else:
+        count[single] = 1
+print(count)
 test_X = count_vec.transform(test_set)
 test_X = tfidf_transformer.transform(test_X)
 right = 0
 whole = 0
 result = clf.predict(test_X)
-print(result)
+
+count = {}
+for single in result:
+    if single in count:
+        count[single] += 1
+    else:
+        count[single] = 1
+print(count)
+
 curr = 0
 for each, res in zip(test_labels, result):
     # if test_labels[curr] == result[curr]:
@@ -119,6 +125,7 @@ for single in result:
         count[single] += 1
     else:
         count[single] = 1
+
 with open('bayes_result.txt', 'w', encoding='utf-8') as fp:
     fp.write(ready_for_print)
 # print(count)
