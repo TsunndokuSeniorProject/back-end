@@ -59,9 +59,10 @@ def replace_bookname(review, bookname="not available bookname"):
     return review
 
 def tag_character(sentence):
-    # print("start spacy {}".format(datetime.datetime.now()))
+    print("start spacy {}".format(datetime.datetime.now()))
+
     doc = nlp(sentence)
-    # print("end spacy {}".format(datetime.datetime.now()))
+    print("end spacy {}".format(datetime.datetime.now()))
     memo = []
     # print("start replace spacy {}".format(datetime.datetime.now()))
     for entity in doc.ents:
@@ -81,8 +82,8 @@ def split_into_sentences_regex(text):
     digits = "([0-9])"
     # text = text.lower()
     
-    text = re.sub(r'\"(.+?)\"', "<Replace>", text)
-    text = re.sub(r'\”(.+?)\”', "<Replace>", text)
+    # text = re.sub(r'\"(.+?)\"', "<Replace>", text)
+    # text = re.sub(r'\”(.+?)\”', "<Replace>", text)
     text = " " + text + "  "
     text = text.replace("\n"," ")
     text = re.sub(prefixes,"\\1<prd>",text)
