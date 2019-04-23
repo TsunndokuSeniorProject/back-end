@@ -33,7 +33,9 @@ def remove_stop_word(sentence):
 
 def filter_english(sentence_list):
     filtered_sentence_list = []
+    original_sent_list = []
     for sentence in sentence_list:
+        original_sent = sentence
         sentence = remove_stop_word(sentence)
         # if re.search(r'[^\u0000-\u007F]+', sentence) == None:
         sentence = re.sub(r'[^\u0041-\u005A | ^\u0061-\u007A]', " ", sentence)
@@ -43,7 +45,8 @@ def filter_english(sentence_list):
             if "spoiler)[" not in sentence and "<Replace>" not in sentence:
                 # filtered_sentence_list.append(tag_character(sentence))
                 filtered_sentence_list.append(sentence)
-    return filtered_sentence_list
+                original_sent_list.append(original_sent)
+    return filtered_sentence_list, original_sent_list
 
 def replace_author(review, author="not available author"):
     if author != "":

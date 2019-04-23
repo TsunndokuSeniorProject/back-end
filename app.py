@@ -138,19 +138,27 @@ def get_review_by_id_with_predict_result(id):
         sentences_list = text_processor.split_into_sentences_regex(text)
         # print(datetime.datetime.now())
         # print("split")
-        sentences_list = text_processor.filter_english(sentences_list)
+        sentences_list, og_sent = text_processor.filter_english(sentences_list)
         # print(datetime.datetime.now())
         # print("fiter and stop word")
         global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
+        new_sentence_list = []
+        new_aspect_list = []
+        new_og_sent = []
+        for asp, sent, og in zip(aspect_res, sentences_list, og_sent):
+            if len(asp) != 0:
+                new_sentence_list.append(sent)
+                new_aspect_list.append(asp)
+                new_og_sent.append(og)
         global graph, polarity_lstm
         polar_res = []
         with graph.as_default():
-            polar_res = polarity_lstm.predict(sentences_list)
+            polar_res = polarity_lstm.predict(new_sentence_list)
             result = np.asarray(polar_res)
         result = find_max(result)
-        book_reviews['sentiment'] = compute_score(aspect_res, result)
-        result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+        book_reviews['sentiment'] = compute_score(new_aspect_list, result)
+        result = pd.DataFrame({"sentences": new_sentence_list, "aspect": new_aspect_list, "polarity": result, "original":new_og_sent})
         result = result.to_dict("records")
         book_reviews['analysis'] = result
         
