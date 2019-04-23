@@ -12,11 +12,11 @@ import en_core_web_sm
 nlp = en_core_web_sm.load(disable=['parser', 'tagger', 'textcat'])
 
 
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('sentiwordnet')
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
+# nltk.download('sentiwordnet')
 
 from nltk.corpus import stopwords
 stopWords = set(stopwords.words('english'))
