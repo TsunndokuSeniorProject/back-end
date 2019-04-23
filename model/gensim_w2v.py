@@ -5,7 +5,7 @@ from nltk.corpus import stopwords
 import nltk
 import sys
 sys.path.append("../")
-from file_reader import file_reader
+from model.file_reader import file_reader
 from model.oms import opinion_mining_system
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
@@ -49,8 +49,7 @@ class gensim_w2v:
         self.model.train(processed, total_examples=len(processed), epochs=10)
         print("training finished")
         
-        self.model.save("gensim_model.sav")
-        self.model.wv.save('wordvectors.kv')
+        self.model.wv.save('./model/wordvectors.kv')
 
     # # uncomment to write to file
     # writeout = ""
@@ -62,7 +61,7 @@ class gensim_w2v:
     # fp.close()
 
     def test(self, input_text=None):
-        wv = KeyedVectors.load('./wordvectors.kv', mmap='r')
+        wv = KeyedVectors.load('./model/wordvectors.kv', mmap='r')
         test_set = []
         test_direc = "C:/Users/hpEnvy/Downloads/test.txt"
         test_set, test_label = file_reader().read(test_direc)
@@ -164,7 +163,7 @@ class gensim_w2v:
 
 
     def predict(self, input_text):
-        wv = KeyedVectors.load('./wordvectors.kv', mmap='r')
+        wv = KeyedVectors.load('./model/wordvectors.kv', mmap='r')
         pred_res = []
         print("start oms")
         aspects = opinion_mining_system().operate_aspect_extraction(input_text)
@@ -235,9 +234,9 @@ if __name__ == '__main__':
     
     # superraw_direc = "C:/Users/hpEnvy/Desktop/raw_review_v1.txt"
     
-    # w2v.train()
+    w2v.train()
     w2v.test()
-    print(w2v.predict(["hello, mama", 'The book has the best character and dialogue ive ever seen', 'impchar was great']))
+    # print(w2v.predict(["hello, mama", 'The book has the best character and dialogue ive ever seen', 'impchar was great']))
     
     direc = 'C:/Users/hpEnvy/Desktop/raw_review_latest.txt'
     with open(direc, 'r', encoding='utf8') as fp:
@@ -252,12 +251,12 @@ if __name__ == '__main__':
     #     con_data = fp.readlines()
     # fp.close()
 
-    for sen, pred in zip(pre_data, result):
-        if not pred:
-            continue
-        else:
-            towrite += sen + " ," + str(pred) + "\n"
+    # for sen, pred in zip(pre_data, result):
+    #     if not pred:
+    #         continue
+    #     else:
+    #         towrite += sen + " ," + str(pred) + "\n"
 
     
-    with open('C:/Users/hpEnvy/Desktop/labeled_by_gensim_for_bayes.txt', 'w+', encoding='utf8') as fp:
-        fp.write(towrite)
+    # with open('C:/Users/hpEnvy/Desktop/labeled_by_gensim_for_bayes.txt', 'w+', encoding='utf8') as fp:
+    #     fp.write(towrite)

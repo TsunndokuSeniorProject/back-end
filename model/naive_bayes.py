@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, ComplementNB
 import re
 import csv
-from file_reader import file_reader
+from model.file_reader import file_reader
 import random
 
 # with open(directory, "r", encoding="utf-8") as fp:
@@ -15,18 +15,18 @@ import random
 # zeros = []
 # zero_label = []
 
-raw_review, raw_label = file_reader().read_v2('C:/Users/USER/Downloads/test.txt', 1, 2)
+raw_review, raw_label = file_reader().read_v2('C:/Users/USER/Downloads/for_pred.txt', 1, 1)
 
-pre_reviews = raw_review[:1500]
-pre_labels = raw_label[:1500]
-test_set = raw_review[1500:]
-test_labels = raw_label[1500:]
+pre_reviews = raw_review[:2200]
+pre_labels = raw_label[:2200]
+test_set = raw_review[2200:]
+test_labels = raw_label[2200:]
 count = 0
 reviews = []
 labels = []
 for review, label in zip(pre_reviews, pre_labels):
     if label == 0:
-        if count == 2:
+        if count == 3:
             count = 0
             continue
         else:
@@ -72,11 +72,11 @@ for single in labels:
 print(count)
 count_vec = CountVectorizer()
 
-xtrain = count_vec.fit_transform(pre_reviews)
+xtrain = count_vec.fit_transform(reviews)
 tfidf_transformer = TfidfTransformer()
 xtrain_tfidf = tfidf_transformer.fit_transform(xtrain)
 
-clf = ComplementNB().fit(xtrain_tfidf, pre_labels)
+clf = ComplementNB().fit(xtrain_tfidf, labels)
 
 # with open(test_direc, 'r', encoding='utf-8') as fp:
 #     test_data = fp.readlines()
@@ -126,6 +126,6 @@ for single in result:
     else:
         count[single] = 1
 
-with open('bayes_result.txt', 'w', encoding='utf-8') as fp:
-    fp.write(ready_for_print)
+# with open('bayes_result.txt', 'w', encoding='utf-8') as fp:
+#     fp.write(ready_for_print)
 # print(count)
