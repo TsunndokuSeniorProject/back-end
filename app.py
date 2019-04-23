@@ -176,9 +176,20 @@ def testML():
 @app.route("/api/book/id/<string:id>", methods=['GET'])
 def get_book_by_id(id):
     query = books.find_one({"_id":str(id)})
-    
     return jsonify({"book_by_id":query})
 
+@app.route("/api/book/name/<string:name>", methods=['GET'])
+def get_book_by_name(name):
+    regx = re.compile(str(name), re.IGNORECASE)
+    query = books.find({"Name":regx})
+    book_found = []
+    count = 0
+    for item in query:
+        count += 1
+        book_found.append(item)
+    if len(book_found) == 0:
+        return jsonify({"all_book_found":"not found any books", "Hit":count})
+    return jsonify({"all_book_found":book_found, "Hit":count})
 
 @app.route("/api/all_books/list", methods=['GET'])
 def get_books_list():
@@ -199,12 +210,20 @@ def get_book_by_genre(genre):
 @app.route("/api/book/all_books/", methods=['GET'])
 def get_all_books():
     
-    query = books.find().limit(50)
+    query = books.find().limit(100)
     all_info = []
     for doc in query:
         all_info.append(doc)
     return jsonify({"all_books_in_genre":all_info})
 
+@app.route("/api/book/range_books/<int:start>:<int:end>", methods=['GET'])
+def get_books_from_to(start, end):
+    
+    query = books.find().skip(start).limit(end)
+    all_info = []
+    for doc in query:
+        all_info.append(doc)
+    return jsonify({"all_books_in_genre":all_info})
 if __name__=="__main__":
     
 
