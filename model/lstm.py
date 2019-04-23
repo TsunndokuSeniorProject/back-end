@@ -25,10 +25,10 @@ from model.text_processor import remove_stop_word
 class lstm:
     def __init__(self):
         self.MAX_SEQUENCE_LENGTH = 20
-        self.MAX_NB_WORDS = 60000
+        self.MAX_NB_WORDS = 100000
         self.EMBEDDING_DIM = 100
         self.VALIDATION_SPLIT = 0.1
-        self.tokenizer = Tokenizer(num_words=60000)
+        self.tokenizer = Tokenizer(num_words=self.MAX_NB_WORDS)
         
     def tokenize(self, train_direc):
         
