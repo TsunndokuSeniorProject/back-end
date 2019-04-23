@@ -4,7 +4,7 @@ from model.lstm import lstm
 from model.gensim_w2v import gensim_w2v
 import model.text_processor as text_processor
 import web_scraper.goodreads.scraper as scraper
-from model.aggregator import compute_score
+from model.aggregator import compute_score, map_sentence, group_result
 from datetime import datetime
 import time
 import os
@@ -67,8 +67,7 @@ def get_review_by_isbn(isbn):
 
 @app.route("/api/book/isbn/interpret/<string:isbn>", methods=['GET'])
 def get_review_by_isbn_with_predict_result(isbn):
-    # print(datetime.datetime.now())
-    # print("start")
+    
     book_id = requests.get("https://www.goodreads.com/book/isbn_to_id?key=ZpKMgjJRKh5Gl7kV9PPUMg&isbn="+isbn)
     if len(book_id.text) is not 0:
         book_reviews = scraper.get_book_reviews(book_id.text)
@@ -77,38 +76,50 @@ def get_review_by_isbn_with_predict_result(isbn):
             for review in book_reviews['Reviews']:
                 text += review['Review'] + " "
             
-            # print(book_reviews["Author"])
-            # print(datetime.datetime.now())
-            print("consolidate review")
             text = text_processor.replace_author(text, book_reviews["Author"])
-            # print(datetime.datetime.now())
-            # print("replace author")
+            
             text = text_processor.replace_bookname(text, book_reviews["Name"])
-            # print(datetime.datetime.now())
-            # print("replace bookname")
-
-            # text = text_processor.tag_character(text)
-
-            # print(datetime.datetime.now())
-            # print("replace impchar")
             sentences_list = text_processor.split_into_sentences_regex(text)
-            # print(datetime.datetime.now())
-            # print("split")
-            sentences_list = text_processor.filter_english(sentences_list)
-            # print(datetime.datetime.now())
-            # print("fiter and stop word")
+            
+            sentences_list, og_sent = text_processor.filter_english(sentences_list)
+            
             global aspect_res
             aspect_res = aspect_gensim.predict(sentences_list)
-            global graph, polarity_lstm        
+            new_sentence_list = []
+            new_aspect_list = []
+            new_og_sent = []
+            for asp, sent, og in zip(aspect_res, sentences_list, og_sent):
+                if len(asp) != 0:
+                    new_sentence_list.append(sent)
+                    new_aspect_list.append(asp)
+                    new_og_sent.append(og)
+            global graph, polarity_lstm
             polar_res = []
             with graph.as_default():
-                polar_res = polarity_lstm.predict(sentences_list)
+                polar_res = polarity_lstm.predict(new_sentence_list)
                 result = np.asarray(polar_res)
             result = find_max(result)
-            book_reviews['sentiment'] = compute_score(aspect_res, result)
-            result = pd.DataFrame({"sentences": sentences_list, "aspect": aspect_res, "polarity": result})
+            book_reviews['sentiment'] = compute_score(new_aspect_list, result)
+
+            bea_back, asp_back, polar_back = map_sentence(new_og_sent, new_aspect_list, result)
+            result = pd.DataFrame({"sentences": bea_back, "aspect": asp_back, "polarity": polar_back})
+            st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
             result = result.to_dict("records")
-            book_reviews['analysis'] = result
+            book_reviews['sentiment']['story_score']["sentence"] = {
+                "positive" : st_pos,
+                "negative" : st_neg,
+                "neutral" : st_neu
+            }
+            book_reviews['sentiment']['writing_score']["sentence"] = {
+                "positive" : wr_pos,
+                "negative" : wr_neg,
+                "neutral" : wr_neu
+            }
+            book_reviews['sentiment']['char_score']["sentence"] = {
+                "positive" : ch_pos,
+                "negative" : ch_neg,
+                "neutral" : ch_neu
+            }
             return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
@@ -121,26 +132,10 @@ def get_review_by_id_with_predict_result(id):
         for review in book_reviews['Reviews']:
             text += review['Review'] + " "
 
-        print(book_reviews["Author"])
-        # print(datetime.datetime.now())
-        # print("consolidate review")
         text = text_processor.replace_author(text, book_reviews["Author"])
-        # print(datetime.datetime.now())
-        # print("replace author")
         text = text_processor.replace_bookname(text, book_reviews["Name"])
-        # print(datetime.datetime.now())
-        # print("replace bookname")
-
-        # text = text_processor.tag_character(text)
-
-        # print(datetime.datetime.now())
-        # print("replace impchar")
         sentences_list = text_processor.split_into_sentences_regex(text)
-        # print(datetime.datetime.now())
-        # print("split")
         sentences_list, og_sent = text_processor.filter_english(sentences_list)
-        # print(datetime.datetime.now())
-        # print("fiter and stop word")
         global aspect_res
         aspect_res = aspect_gensim.predict(sentences_list)
         new_sentence_list = []
@@ -158,9 +153,27 @@ def get_review_by_id_with_predict_result(id):
             result = np.asarray(polar_res)
         result = find_max(result)
         book_reviews['sentiment'] = compute_score(new_aspect_list, result)
-        result = pd.DataFrame({"sentences": new_sentence_list, "aspect": new_aspect_list, "polarity": result, "original":new_og_sent})
+
+        bea_back, asp_back, polar_back = map_sentence(new_og_sent, new_aspect_list, result)
+
+        result = pd.DataFrame({"sentences": bea_back, "aspect": asp_back, "polarity": polar_back})
+        st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
         result = result.to_dict("records")
-        book_reviews['analysis'] = result
+        book_reviews['sentiment']['story_score']["sentence"] = {
+            "positive" : st_pos,
+            "negative" : st_neg,
+            "neutral" : st_neu
+        }
+        book_reviews['sentiment']['writing_score']["sentence"] = {
+            "positive" : wr_pos,
+            "negative" : wr_neg,
+            "neutral" : wr_neu
+        }
+        book_reviews['sentiment']['char_score']["sentence"] = {
+            "positive" : ch_pos,
+            "negative" : ch_neg,
+            "neutral" : ch_neu
+        }
         
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given id."})
