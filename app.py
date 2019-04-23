@@ -103,24 +103,24 @@ def get_review_by_isbn_with_predict_result(isbn):
 
             bea_back, asp_back, polar_back = map_sentence(new_og_sent, new_aspect_list, result)
             result = pd.DataFrame({"sentences": bea_back, "aspect": asp_back, "polarity": polar_back})
-            st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
+            # st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
             result = result.to_dict("records")
-            book_reviews['sentiment']['story_score']["sentence"] = {
-                "positive" : st_pos,
-                "negative" : st_neg,
-                "neutral" : st_neu
-            }
-            book_reviews['sentiment']['writing_score']["sentence"] = {
-                "positive" : wr_pos,
-                "negative" : wr_neg,
-                "neutral" : wr_neu
-            }
-            book_reviews['sentiment']['char_score']["sentence"] = {
-                "positive" : ch_pos,
-                "negative" : ch_neg,
-                "neutral" : ch_neu
-            }
-            return jsonify(book_reviews)
+            # book_reviews['sentiment']['story_score']["sentence"] = {
+            #     "positive" : st_pos,
+            #     "negative" : st_neg,
+            #     "neutral" : st_neu
+            # }
+            # book_reviews['sentiment']['writing_score']["sentence"] = {
+            #     "positive" : wr_pos,
+            #     "negative" : wr_neg,
+            #     "neutral" : wr_neu
+            # }
+            # book_reviews['sentiment']['char_score']["sentence"] = {
+            #     "positive" : ch_pos,
+            #     "negative" : ch_neg,
+            #     "neutral" : ch_neu
+            # }
+            # return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given isbn."})
 
 @app.route("/api/book/id/interpret/<string:id>", methods=['GET'])
@@ -157,23 +157,23 @@ def get_review_by_id_with_predict_result(id):
         bea_back, asp_back, polar_back = map_sentence(new_og_sent, new_aspect_list, result)
 
         result = pd.DataFrame({"sentences": bea_back, "aspect": asp_back, "polarity": polar_back})
-        st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
+        # st_pos, st_neg, st_neu, wr_pos, wr_neg, wr_neu, ch_pos, ch_neg, ch_neu = group_result(result)
         result = result.to_dict("records")
-        book_reviews['sentiment']['story_score']["sentence"] = {
-            "positive" : st_pos,
-            "negative" : st_neg,
-            "neutral" : st_neu
-        }
-        book_reviews['sentiment']['writing_score']["sentence"] = {
-            "positive" : wr_pos,
-            "negative" : wr_neg,
-            "neutral" : wr_neu
-        }
-        book_reviews['sentiment']['char_score']["sentence"] = {
-            "positive" : ch_pos,
-            "negative" : ch_neg,
-            "neutral" : ch_neu
-        }
+        # book_reviews['sentiment']['story_score']["sentence"] = {
+        #     "positive" : st_pos,
+        #     "negative" : st_neg,
+        #     "neutral" : st_neu
+        # }
+        # book_reviews['sentiment']['writing_score']["sentence"] = {
+        #     "positive" : wr_pos,
+        #     "negative" : wr_neg,
+        #     "neutral" : wr_neu
+        # }
+        # book_reviews['sentiment']['char_score']["sentence"] = {
+        #     "positive" : ch_pos,
+        #     "negative" : ch_neg,
+        #     "neutral" : ch_neu
+        # }
         
         return jsonify(book_reviews)
     return jsonify({"fail_message":"couldn't find book by the given id."})
