@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 import re
-import nltk 
-import spacy
+import nltk
 import os
 import json
 import datetime
 
 # import spacy
 # nlp = spacy.load('en_core_web_sm')
-import en_core_web_sm
-nlp = en_core_web_sm.load(disable=['parser', 'tagger', 'textcat'])
+# import en_core_web_sm
+# nlp = en_core_web_sm.load(disable=['parser', 'tagger', 'textcat'])
 
 
 # nltk.download('punkt')
@@ -61,19 +60,19 @@ def replace_bookname(review, bookname="not available bookname"):
         review = review.replace(bookname, "bookname")
     return review
 
-def tag_character(sentence):
-    print("start spacy {}".format(datetime.datetime.now()))
+# def tag_character(sentence):
+#     print("start spacy {}".format(datetime.datetime.now()))
 
-    doc = nlp(sentence)
-    print("end spacy {}".format(datetime.datetime.now()))
-    memo = []
-    # print("start replace spacy {}".format(datetime.datetime.now()))
-    for entity in doc.ents:
-        if entity.label_ is "PERSON" and entity.text != " " and entity.text not in memo:
-            memo.append(entity.text)
-            sentence = sentence.replace(entity.text, "impchar")
-    # print("end replace spacy {}".format(datetime.datetime.now()))
-    return sentence
+#     doc = nlp(sentence)
+#     print("end spacy {}".format(datetime.datetime.now()))
+#     memo = []
+#     # print("start replace spacy {}".format(datetime.datetime.now()))
+#     for entity in doc.ents:
+#         if entity.label_ is "PERSON" and entity.text != " " and entity.text not in memo:
+#             memo.append(entity.text)
+#             sentence = sentence.replace(entity.text, "impchar")
+#     # print("end replace spacy {}".format(datetime.datetime.now()))
+#     return sentence
 
 def split_into_sentences_regex(text):
     alphabets= "([A-Za-z])"
@@ -228,6 +227,6 @@ Twilight: The Broodening
 Twilight 2: Broodening Harder
 Twilight: The Broodening 3 - Electric Broodaloo
 ----------------Anyway, dear friends, we have almost survived the years of Twilight epidemic. Now it's just Twilight fanfics left to darken our days. But that, too, shall pass. Right? Right? Twilight is probably the biggest love/hate relationship of my life and at this point I am completely fine with saying I will never come to a solid, conclusive rating. After a decade of continually jumping between 2-4 stars, I'm going to call it an average of 3 and call it good...Stuff I loved- the PNW setting!!!!- I just really love YA tropes, ok- an actual small town setting- Edward's family- Bella is not a Mary Sue... she feels more like a regular, reserved, unsure teen still figuring herself & life out- OLYMPIC PENINSULA. Yes. - how much this series did for YAStuff I did NOT love- Edward's creepy possessive behavior & self-loathing issues- how the author rewrote the history of an actual real Native American tribe- yeah, the writing isn't the strongest...- Bella's entire existence revolves around her bf aaaand they're a wee bit intenseSo I TOTALLY get why people hate this series... but I also get why others love it. Either way, I had fun with it when it first came out and think it's wonderful how many people became readers because of Twilight!"""
-    print(tag_character(b))
+    # print(tag_character(b))
     # if remove_stop_word(test_data) == test_data:
     #     print(True)

@@ -5,7 +5,6 @@ from keras.preprocessing import sequence
 from keras.utils import generic_utils
 from keras import optimizers
 import collections
-import spacy
 import os
 import zipfile
 import numpy as np
