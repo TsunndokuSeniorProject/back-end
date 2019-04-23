@@ -20,7 +20,7 @@ class file_reader:
             label = []
             
             for line in fp.readlines():
-                if re.search("\,[\s]?[\-]?[1-2]$", line):
+                if re.search("\,[\s]?[\-]?[\d]$", line):
                     sentence_elements = line.split(",")
                     checker = sentence_elements[:]
                     checker.reverse()
