@@ -44,3 +44,14 @@ def compute_score(aspect_list, polarity_list):
     res = {"story_score": story_score, "writing_score": writing_score, "char_score": char_score}
     return res
 
+def map_sentence(bea_list, aspect_list, polarity_list):
+    bea_back = []
+    asp_back = []
+    polar_back = []
+    for sen, asp, senti in zip(bea_list, list(set(aspect_list)), polarity_list):
+        for single in asp:
+            bea_back.append(sen)
+            asp_back.append(single)
+            polar_back.append(senti)
+
+    return bea_back, asp_back, polar_back
