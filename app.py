@@ -199,9 +199,10 @@ def get_books_list():
         all_info.append(doc)
     return jsonify({"all_books":all_info})
 
-@app.route("/api/book/all_books/genre/<string:genre>", methods=['GET'])
-def get_book_by_genre(genre):
-    query = books.find({"Genre":genre.capitalize()})
+@app.route("/api/book/all_books/genre/<string:genre>/<int:start>:<int:end>", methods=['GET'])
+def get_book_by_genre(genre, start=0, end=10):
+    regx = re.compile(str(genre), re.IGNORECASE)
+    query = books.find({"Genre":regx}).skip(start).limit(end)
     all_info = []
     for doc in query:
         all_info.append(doc)
@@ -214,7 +215,7 @@ def get_all_books():
     all_info = []
     for doc in query:
         all_info.append(doc)
-    return jsonify({"all_books_in_genre":all_info})
+    return jsonify({"all_books":all_info})
 
 @app.route("/api/book/range_books/<int:start>:<int:end>", methods=['GET'])
 def get_books_from_to(start, end):
@@ -223,7 +224,14 @@ def get_books_from_to(start, end):
     all_info = []
     for doc in query:
         all_info.append(doc)
-    return jsonify({"all_books_in_genre":all_info})
+    return jsonify({"books":all_info})
+
+@app.route("/api/all_genre/", methods=['GET'])
+def get_all_genre():
+    query = books.distinct( "Genre" )
+    return jsonify({"all_genre":query})
+
+
 if __name__=="__main__":
     
 
