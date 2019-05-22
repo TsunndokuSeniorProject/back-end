@@ -26,9 +26,9 @@ import datetime
 
 app = Flask(__name__)
 
-uri = "mongodb://tsundoku_db:tsundoku_db_007@ds133875.mlab.com:33875/tsundoku"
+credential = "mongodb://id:password@ds133875.mlab.com:33875/db_name"
 
-client = pymongo.MongoClient(uri)
+client = pymongo.MongoClient(credential)
 
 db = client.get_default_database()
 
